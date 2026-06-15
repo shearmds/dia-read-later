@@ -227,6 +227,10 @@ document.getElementById("synckey-btn").addEventListener("click", () => {
   if (!syncKeyPanel.hidden) loadSyncKey();
 });
 
+document.getElementById("synckey-done").addEventListener("click", () => {
+  syncKeyPanel.hidden = true;
+});
+
 document.getElementById("synckey-copy").addEventListener("click", async () => {
   if (!syncKeyInput.value) return;
   await navigator.clipboard.writeText(syncKeyInput.value);

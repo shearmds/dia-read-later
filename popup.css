@@ -175,6 +175,7 @@ kbd {
 footer {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 8px 14px;
   border-top: 1px solid #e5e5ea;
@@ -198,9 +199,11 @@ footer button:hover, #import-label:hover { background: #e5e5ea; }
 #import-msg {
   font-size: 11px;
   color: #34c759;
-  flex: 1;
-  text-align: right;
+  flex: 1 1 100%;
+  order: 10;
+  text-align: left;
 }
+#import-msg:empty { display: none; }
 
 #synckey-panel {
   padding: 12px 14px;

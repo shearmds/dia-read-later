@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Read This Later for Dia",
-  "version": "1.5",
+  "version": "1.6",
   "description": "Save pages to read later, right from your toolbar.",
   "permissions": ["activeTab", "storage", "tabs", "alarms"],
   "host_permissions": ["https://readlater-sync.shearm.workers.dev/*"],
