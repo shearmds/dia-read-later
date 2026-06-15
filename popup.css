@@ -172,17 +172,46 @@ kbd {
   font-size: 11px;
 }
 
-footer {
-  display: flex;
+/* Settings gear in header */
+.icon-btn {
+  margin-left: auto;
+  display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 8px 14px;
+  justify-content: center;
+  padding: 3px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+}
+.icon-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+/* Collapsible settings panel */
+#settings-panel {
+  padding: 12px 14px;
   border-top: 1px solid #e5e5ea;
   background: #fff;
+  flex-direction: column;
+  gap: 8px;
+  display: none;
+}
+#settings-panel.open { display: flex; }
+#settings-panel .hint { font-size: 11px; color: #8e8e93; line-height: 1.4; margin: 0; }
+
+.settings-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8e8e93;
 }
 
-footer button, #import-label {
+.settings-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.settings-divider { height: 1px; background: #e5e5ea; margin: 2px 0; }
+
+#settings-panel button, #import-label {
   padding: 4px 10px;
   border: 1px solid #d1d1d6;
   border-radius: 7px;
@@ -192,29 +221,13 @@ footer button, #import-label {
   cursor: pointer;
   white-space: nowrap;
 }
-footer button:hover, #import-label:hover { background: #e5e5ea; }
+#settings-panel button:hover, #import-label:hover { background: #e5e5ea; }
 
 #import-input { display: none; }
 
-#import-msg {
-  font-size: 11px;
-  color: #34c759;
-  flex: 1 1 100%;
-  order: 10;
-  text-align: left;
-}
-#import-msg:empty { display: none; }
+#import-msg, #synckey-msg { font-size: 11px; color: #34c759; }
+#import-msg:empty, #synckey-msg:empty { display: none; }
 
-#synckey-panel {
-  padding: 12px 14px;
-  border-top: 1px solid #e5e5ea;
-  background: #fff;
-  flex-direction: column;
-  gap: 8px;
-  display: none;
-}
-#synckey-panel.open { display: flex; }
-#synckey-panel .hint { font-size: 11px; color: #8e8e93; line-height: 1.4; }
 #synckey-input {
   padding: 6px 10px;
   border: 1px solid #d1d1d6;
@@ -224,15 +237,7 @@ footer button:hover, #import-label:hover { background: #e5e5ea; }
   outline: none;
 }
 #synckey-input:focus { border-color: #ec407a; }
-.synckey-actions { display: flex; gap: 8px; }
-.synckey-actions button {
-  padding: 4px 10px;
-  border: 1px solid #d1d1d6;
-  border-radius: 7px;
-  background: #f2f2f7;
-  font-size: 12px;
-  color: #333;
-  cursor: pointer;
-}
-.synckey-actions button:hover { background: #e5e5ea; }
-#synckey-msg { font-size: 11px; color: #34c759; min-height: 14px; }
+
+.synckey-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+#settings-panel .settings-done { align-self: flex-end; margin-top: 2px; }

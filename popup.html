@@ -14,6 +14,11 @@
           <path d="M6 2h12c0.55 0 1 0.45 1 1v19l-7-4-7 4V3c0-0.55 0.45-1 1-1z" fill="currentColor"/>
         </svg>
         Read This Later
+        <button id="settings-btn" class="icon-btn" title="Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path fill="currentColor" d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54A.49.49 0 0 0 13.9 2h-3.84a.49.49 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.7 8.47a.49.49 0 0 0 .12.61l2.03 1.58c-.05.31-.07.63-.07.94s.02.63.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.13.22.39.31.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.2.09.46 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58ZM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2Z"/>
+          </svg>
+        </button>
       </h1>
       <div class="header-actions">
         <input id="search" type="text" placeholder="Search…" autocomplete="off" />
@@ -34,18 +39,21 @@
       <p class="hint">Click <strong>+ Save</strong> or press <kbd>Alt+S</kbd> to save the current page.</p>
     </div>
 
-    <footer>
-      <button id="export-btn">Export JSON</button>
-      <label id="import-label">
-        Import JSON
-        <input id="import-input" type="file" accept=".json" />
-      </label>
+    <div id="settings-panel">
+      <div class="settings-section-title">Data</div>
+      <div class="settings-buttons">
+        <button id="export-btn">Export JSON</button>
+        <label id="import-label">
+          Import JSON
+          <input id="import-input" type="file" accept=".json" />
+        </label>
+        <button id="shortcut-btn" title="Set a keyboard shortcut to save without opening the popup">⌨ Shortcut</button>
+      </div>
       <span id="import-msg"></span>
-      <button id="shortcut-btn" title="Set a keyboard shortcut to save without opening the popup">⌨ Shortcut</button>
-      <button id="synckey-btn" title="View or change your sync key">🔑 Sync Key</button>
-    </footer>
 
-    <div id="synckey-panel">
+      <div class="settings-divider"></div>
+
+      <div class="settings-section-title">Sync Key</div>
       <p class="hint">
         Your sync key links your devices. Paste the same key on each device to
         share one list. Keep it private — anyone with it can read your saved pages.
@@ -55,9 +63,10 @@
         <button id="synckey-copy">Copy</button>
         <button id="synckey-save">Save key</button>
         <button id="synckey-generate">Generate new</button>
-        <button id="synckey-done">Done</button>
       </div>
       <span id="synckey-msg"></span>
+
+      <button id="settings-done" class="settings-done">Done</button>
     </div>
   </div>
   <script src="popup.js"></script>

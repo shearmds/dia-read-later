@@ -206,8 +206,8 @@ document.querySelectorAll(".filter").forEach((btn) => {
   });
 });
 
-// --- Sync key management ---
-const syncKeyPanel = document.getElementById("synckey-panel");
+// --- Settings panel (data + sync key) ---
+const settingsPanel = document.getElementById("settings-panel");
 const syncKeyInput = document.getElementById("synckey-input");
 const syncKeyMsg = document.getElementById("synckey-msg");
 
@@ -222,14 +222,14 @@ async function loadSyncKey() {
   syncKeyInput.value = syncToken;
 }
 
-document.getElementById("synckey-btn").addEventListener("click", () => {
-  const willOpen = !syncKeyPanel.classList.contains("open");
-  syncKeyPanel.classList.toggle("open", willOpen);
+document.getElementById("settings-btn").addEventListener("click", () => {
+  const willOpen = !settingsPanel.classList.contains("open");
+  settingsPanel.classList.toggle("open", willOpen);
   if (willOpen) loadSyncKey();
 });
 
-document.getElementById("synckey-done").addEventListener("click", () => {
-  syncKeyPanel.classList.remove("open");
+document.getElementById("settings-done").addEventListener("click", () => {
+  settingsPanel.classList.remove("open");
 });
 
 document.getElementById("synckey-copy").addEventListener("click", async () => {
