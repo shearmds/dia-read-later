@@ -223,12 +223,13 @@ async function loadSyncKey() {
 }
 
 document.getElementById("synckey-btn").addEventListener("click", () => {
-  syncKeyPanel.hidden = !syncKeyPanel.hidden;
-  if (!syncKeyPanel.hidden) loadSyncKey();
+  const willOpen = !syncKeyPanel.classList.contains("open");
+  syncKeyPanel.classList.toggle("open", willOpen);
+  if (willOpen) loadSyncKey();
 });
 
 document.getElementById("synckey-done").addEventListener("click", () => {
-  syncKeyPanel.hidden = true;
+  syncKeyPanel.classList.remove("open");
 });
 
 document.getElementById("synckey-copy").addEventListener("click", async () => {

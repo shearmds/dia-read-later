@@ -209,11 +209,11 @@ footer button:hover, #import-label:hover { background: #e5e5ea; }
   padding: 12px 14px;
   border-top: 1px solid #e5e5ea;
   background: #fff;
-  display: flex;
   flex-direction: column;
   gap: 8px;
+  display: none;
 }
-#synckey-panel[hidden] { display: none; }
+#synckey-panel.open { display: flex; }
 #synckey-panel .hint { font-size: 11px; color: #8e8e93; line-height: 1.4; }
 #synckey-input {
   padding: 6px 10px;
