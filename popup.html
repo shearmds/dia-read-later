@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Read This Later</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>
+        <svg class="logo-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M6 2h12c0.55 0 1 0.45 1 1v19l-7-4-7 4V3c0-0.55 0.45-1 1-1z" fill="currentColor"/>
+        </svg>
+        Read This Later
+      </h1>
+      <div class="header-actions">
+        <input id="search" type="text" placeholder="Search…" autocomplete="off" />
+        <button id="save-btn" title="Save current page">+ Save</button>
+      </div>
+    </header>
+
+    <div id="filter-bar">
+      <button class="filter active" data-filter="all">All</button>
+      <button class="filter" data-filter="unread">Unread</button>
+      <button class="filter" data-filter="read">Read</button>
+    </div>
+
+    <ul id="list"></ul>
+
+    <div id="empty">
+      <p>No saved pages yet.</p>
+      <p class="hint">Click <strong>+ Save</strong> or press <kbd>Alt+S</kbd> to save the current page.</p>
+    </div>
+
+    <footer>
+      <button id="export-btn">Export JSON</button>
+      <label id="import-label">
+        Import JSON
+        <input id="import-input" type="file" accept=".json" />
+      </label>
+      <span id="import-msg"></span>
+      <button id="shortcut-btn" title="Set a keyboard shortcut to save without opening the popup">⌨ Shortcut</button>
+      <button id="synckey-btn" title="View or change your sync key">🔑 Sync Key</button>
+    </footer>
+
+    <div id="synckey-panel" hidden>
+      <p class="hint">
+        Your sync key links your devices. Paste the same key on each device to
+        share one list. Keep it private — anyone with it can read your saved pages.
+      </p>
+      <input id="synckey-input" type="text" placeholder="Sync key" autocomplete="off" spellcheck="false" />
+      <div class="synckey-actions">
+        <button id="synckey-copy">Copy</button>
+        <button id="synckey-save">Save key</button>
+        <button id="synckey-generate">Generate new</button>
+      </div>
+      <span id="synckey-msg"></span>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
