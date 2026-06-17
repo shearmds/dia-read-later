@@ -1,3 +1,8 @@
+:root {
+  --theme-start: #ff8a4c;
+  --theme-end: #ec407a;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -16,7 +21,7 @@ body {
 
 header {
   padding: 14px 14px 12px;
-  background: linear-gradient(135deg, #ff8a4c 0%, #ec407a 100%);
+  background: linear-gradient(135deg, var(--theme-start) 0%, var(--theme-end) 100%);
   color: #fff;
 }
 
@@ -54,7 +59,7 @@ h1 {
 #save-btn {
   padding: 6px 12px;
   background: #fff;
-  color: #ec407a;
+  color: var(--theme-end);
   border: none;
   border-radius: 8px;
   font-size: 13px;
@@ -82,7 +87,29 @@ h1 {
   cursor: pointer;
   color: #555;
 }
-.filter.active { background: #ec407a; color: #fff; border-color: #ec407a; }
+.filter.active { background: var(--theme-end); color: #fff; border-color: var(--theme-end); }
+
+#theme-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 7px 14px;
+  background: #fff;
+  border-bottom: 1px solid #e5e5ea;
+}
+
+.theme-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s;
+}
+.theme-swatch:hover { transform: scale(1.15); }
+.theme-swatch.active { border-color: #fff; box-shadow: 0 0 0 1.5px rgba(0,0,0,0.25); }
 
 #list {
   flex: 1;
@@ -236,7 +263,7 @@ kbd {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   outline: none;
 }
-#synckey-input:focus { border-color: #ec407a; }
+#synckey-input:focus { border-color: var(--theme-end); }
 
 .synckey-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 

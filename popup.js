@@ -1,4 +1,38 @@
-let allItems = []; 
+const THEMES = [
+  { id: 'sunset',   start: '#ff8a4c', end: '#ec407a' },
+  { id: 'ocean',    start: '#26c6da', end: '#1565c0' },
+  { id: 'forest',   start: '#9ccc65', end: '#2e7d32' },
+  { id: 'dusk',     start: '#ab47bc', end: '#3949ab' },
+  { id: 'rose',     start: '#f48fb1', end: '#c62828' },
+  { id: 'midnight', start: '#1a237e', end: '#0d47a1' },
+];
+
+function applyTheme(id) {
+  const t = THEMES.find(t => t.id === id) ?? THEMES[0];
+  document.documentElement.style.setProperty('--theme-start', t.start);
+  document.documentElement.style.setProperty('--theme-end', t.end);
+  document.querySelectorAll('.theme-swatch').forEach(el => {
+    el.classList.toggle('active', el.dataset.theme === t.id);
+  });
+}
+
+function buildThemeBar() {
+  const bar = document.getElementById('theme-bar');
+  THEMES.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'theme-swatch';
+    btn.dataset.theme = t.id;
+    btn.title = t.id.charAt(0).toUpperCase() + t.id.slice(1);
+    btn.style.background = `linear-gradient(135deg, ${t.start}, ${t.end})`;
+    btn.addEventListener('click', async () => {
+      await chrome.storage.local.set({ appTheme: t.id });
+      applyTheme(t.id);
+    });
+    bar.appendChild(btn);
+  });
+}
+
+let allItems = [];
 /* CHANGE: Changed default filter from "all" to "unread" */
 let currentFilter = "unread"; 
 let searchQuery = ""; 
@@ -8,10 +42,12 @@ const emptyEl = document.getElementById("empty");
 const searchEl = document.getElementById("search"); 
 const saveBtn = document.getElementById("save-btn"); 
 
-async function load() {   
-  const { readLater = [] } = await chrome.storage.local.get("readLater");   
-  allItems = readLater;   
-  
+async function load() {
+  buildThemeBar();
+  const { readLater = [], appTheme = 'sunset' } = await chrome.storage.local.get(['readLater', 'appTheme']);
+  applyTheme(appTheme);
+  allItems = readLater;
+
   /* CHANGE: Ensure the visual UI classes match our "unread" default on startup */
   document.querySelectorAll(".filter").forEach((b) => {
     if (b.dataset.filter === "unread") {
