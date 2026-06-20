@@ -73,7 +73,100 @@ function filtered() {
   });
 }
 
-function faviconUrl(url) {   
+// Mirrors ReadLater's ArticleCategory.swift (Shared (App)/ArticleCategory.swift)
+// so the Chrome/Dia extension shows the same domain tags as the iOS app.
+const CATEGORY_COLORS = {
+  News: '#007aff', Video: '#ff3b30', Dev: '#af52de',
+  Social: '#ff2d55', Shopping: '#34c759', Govt: '#5856d6',
+};
+
+const CATEGORY_DOMAINS = {
+  // US newspapers / wire services
+  'nytimes.com': 'News', 'wsj.com': 'News', 'washingtonpost.com': 'News',
+  'usatoday.com': 'News', 'latimes.com': 'News', 'chicagotribune.com': 'News',
+  'nypost.com': 'News', 'nydailynews.com': 'News', 'sfchronicle.com': 'News',
+  'bostonglobe.com': 'News', 'dallasnews.com': 'News', 'miamiherald.com': 'News',
+  'denverpost.com': 'News', 'seattletimes.com': 'News', 'startribune.com': 'News',
+  'inquirer.com': 'News', 'ajc.com': 'News', 'statesman.com': 'News',
+  'reuters.com': 'News', 'apnews.com': 'News', 'upi.com': 'News',
+  // US cable / broadcast / public radio
+  'cnn.com': 'News', 'foxnews.com': 'News', 'nbcnews.com': 'News',
+  'abcnews.go.com': 'News', 'cbsnews.com': 'News', 'msnbc.com': 'News',
+  'pbs.org': 'News', 'npr.org': 'News',
+  // UK / Ireland
+  'theguardian.com': 'News', 'bbc.com': 'News', 'bbc.co.uk': 'News',
+  'thetimes.co.uk': 'News', 'thetimes.com': 'News', 'telegraph.co.uk': 'News',
+  'independent.co.uk': 'News', 'dailymail.co.uk': 'News', 'mirror.co.uk': 'News',
+  'ft.com': 'News', 'economist.com': 'News', 'standard.co.uk': 'News',
+  'metro.co.uk': 'News', 'news.sky.com': 'News', 'itv.com': 'News',
+  'irishtimes.com': 'News',
+  // International
+  'aljazeera.com': 'News', 'dw.com': 'News', 'france24.com': 'News',
+  'lemonde.fr': 'News', 'spiegel.de': 'News', 'scmp.com': 'News',
+  'japantimes.co.jp': 'News', 'straitstimes.com': 'News',
+  'smh.com.au': 'News', 'theage.com.au': 'News', 'abc.net.au': 'News',
+  'cbc.ca': 'News', 'globalnews.ca': 'News', 'theglobeandmail.com': 'News',
+  'nationalpost.com': 'News',
+  // Politics
+  'politico.com': 'News', 'axios.com': 'News', 'thehill.com': 'News',
+  'realclearpolitics.com': 'News',
+  // Business / finance
+  'bloomberg.com': 'News', 'cnbc.com': 'News', 'marketwatch.com': 'News',
+  'forbes.com': 'News', 'fortune.com': 'News', 'businessinsider.com': 'News',
+  'barrons.com': 'News', 'fastcompany.com': 'News', 'inc.com': 'News',
+  // Magazines / long-form / opinion
+  'theatlantic.com': 'News', 'newyorker.com': 'News', 'vox.com': 'News',
+  'slate.com': 'News', 'salon.com': 'News', 'time.com': 'News',
+  'newsweek.com': 'News', 'thedailybeast.com': 'News', 'harpers.org': 'News',
+  'vanityfair.com': 'News', 'gq.com': 'News', 'esquire.com': 'News',
+  'rollingstone.com': 'News', 'motherjones.com': 'News', 'propublica.org': 'News',
+  'theintercept.com': 'News', 'nationalreview.com': 'News', 'thenation.com': 'News',
+  'reason.com': 'News', 'semafor.com': 'News', 'puck.news': 'News',
+  // Tech journalism
+  'theverge.com': 'News', 'macrumors.com': 'News', 'techcrunch.com': 'News',
+  'arstechnica.com': 'News', 'engadget.com': 'News', 'gizmodo.com': 'News',
+  'mashable.com': 'News', 'cnet.com': 'News', 'zdnet.com': 'News',
+  'wired.com': 'News', '9to5mac.com': 'News', '9to5google.com': 'News',
+  'androidcentral.com': 'News',
+  // Science
+  'scientificamerican.com': 'News', 'nature.com': 'News',
+  'newscientist.com': 'News', 'popsci.com': 'News', 'smithsonianmag.com': 'News',
+  // Sports
+  'espn.com': 'News', 'si.com': 'News', 'theathletic.com': 'News',
+  'bleacherreport.com': 'News',
+  // Entertainment
+  'variety.com': 'News', 'hollywoodreporter.com': 'News', 'ew.com': 'News',
+  'people.com': 'News', 'eonline.com': 'News',
+
+  'youtube.com': 'Video', 'youtu.be': 'Video', 'vimeo.com': 'Video', 'twitch.tv': 'Video',
+
+  'github.com': 'Dev', 'gitlab.com': 'Dev', 'stackoverflow.com': 'Dev',
+  'news.ycombinator.com': 'Dev', 'dev.to': 'Dev', 'medium.com': 'Dev', 'arxiv.org': 'Dev',
+
+  'twitter.com': 'Social', 'x.com': 'Social', 'reddit.com': 'Social',
+  'instagram.com': 'Social', 'threads.net': 'Social', 'facebook.com': 'Social',
+  'linkedin.com': 'Social',
+
+  'amazon.com': 'Shopping', 'etsy.com': 'Shopping',
+};
+
+function categoryFor(urlString) {
+  let host;
+  try { host = new URL(urlString).hostname.toLowerCase(); } catch { return null; }
+  if (host.startsWith('www.')) host = host.slice(4);
+
+  if (host === 'gov' || host.endsWith('.gov') || host === 'mil' || host.endsWith('.mil')
+      || host === 'gov.uk' || host.endsWith('.gov.uk')) {
+    return 'Govt';
+  }
+  if (CATEGORY_DOMAINS[host]) return CATEGORY_DOMAINS[host];
+  for (const domain in CATEGORY_DOMAINS) {
+    if (host.endsWith('.' + domain)) return CATEGORY_DOMAINS[domain];
+  }
+  return null;
+}
+
+function faviconUrl(url) {
   try {     
     const origin = new URL(url).origin;     
     return `${origin}/favicon.ico`;   
@@ -105,10 +198,23 @@ function render() {
     const title = document.createElement("div");     
     title.className = "item-title";     
     title.textContent = item.title;     
-    const urlEl = document.createElement("div");     
-    urlEl.className = "item-url";     
-    try { urlEl.textContent = new URL(item.url).hostname; } catch { urlEl.textContent = item.url; }     
-    body.append(title, urlEl);     
+    const meta = document.createElement("div");
+    meta.className = "item-meta";
+    const urlEl = document.createElement("span");
+    urlEl.className = "item-url";
+    try { urlEl.textContent = new URL(item.url).hostname; } catch { urlEl.textContent = item.url; }
+    meta.append(urlEl);
+    const category = categoryFor(item.url);
+    if (category) {
+      const tag = document.createElement("span");
+      tag.className = "item-category";
+      tag.textContent = category;
+      const color = CATEGORY_COLORS[category];
+      tag.style.color = color;
+      tag.style.backgroundColor = color + "26"; // ~15% opacity
+      meta.append(tag);
+    }
+    body.append(title, meta);
     
     const actions = document.createElement("div");     
     actions.className = "item-actions";     

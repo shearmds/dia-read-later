@@ -149,13 +149,29 @@ h1 {
 }
 .item.is-read .item-title { text-decoration: line-through; }
 
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  min-width: 0;
+}
+
 .item-url {
   font-size: 11px;
   color: #8e8e93;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-top: 2px;
+  min-width: 0;
+}
+
+.item-category {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
 }
 
 .item-actions {
