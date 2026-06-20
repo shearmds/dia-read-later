@@ -214,21 +214,33 @@ function render() {
       tag.style.backgroundColor = color + "26"; // ~15% opacity
       meta.append(tag);
     }
+    if (item.notes) {
+      const noteIndicator = document.createElement("span");
+      noteIndicator.className = "item-note-indicator";
+      noteIndicator.textContent = "✎";
+      noteIndicator.title = "Has a note";
+      meta.append(noteIndicator);
+    }
     body.append(title, meta);
-    
-    const actions = document.createElement("div");     
-    actions.className = "item-actions";     
-    const readBtn = document.createElement("button");     
-    readBtn.title = item.read ? "Mark unread" : "Mark read";     
-    readBtn.textContent = item.read ? "↩" : "✓";     
-    readBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleRead(item.url); });     
-    
-    const deleteBtn = document.createElement("button");     
-    deleteBtn.title = "Remove";     
-    deleteBtn.textContent = "✕";     
-    deleteBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteItem(item.url); });     
-    
-    actions.append(readBtn, deleteBtn);     
+
+    const actions = document.createElement("div");
+    actions.className = "item-actions";
+    const readBtn = document.createElement("button");
+    readBtn.title = item.read ? "Mark unread" : "Mark read";
+    readBtn.textContent = item.read ? "↩" : "✓";
+    readBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleRead(item.url); });
+
+    const noteBtn = document.createElement("button");
+    noteBtn.title = item.notes ? "Edit note" : "Add note";
+    noteBtn.textContent = "✎";
+    noteBtn.addEventListener("click", (e) => { e.stopPropagation(); openNotesPanel(item); });
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.title = "Remove";
+    deleteBtn.textContent = "✕";
+    deleteBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteItem(item.url); });
+
+    actions.append(readBtn, noteBtn, deleteBtn);
     li.append(favicon, body, actions);     
     li.addEventListener("click", () => {       
       chrome.tabs.create({ url: item.url });       
@@ -273,6 +285,15 @@ async function toggleRead(url) {
   chrome.runtime.sendMessage({ action: 'syncNow' });
 }
 
+async function setNotes(url, notes) {
+  const now = Date.now();
+  allItems = allItems.map((i) => i.url === url ? { ...i, notes: notes || undefined, updatedAt: now } : i);
+  await chrome.storage.local.set({ readLater: allItems });
+  render();
+
+  chrome.runtime.sendMessage({ action: 'syncNow' });
+}
+
 async function deleteItem(url) {
   const now = Date.now();
   allItems = allItems.map((i) => i.url === url ? { ...i, deleted: true, updatedAt: now } : i);
@@ -282,15 +303,41 @@ async function deleteItem(url) {
   chrome.runtime.sendMessage({ action: 'syncNow' });
 }
 
-function exportData() {   
-  const json = JSON.stringify(allItems, null, 2);   
-  const blob = new Blob([json], { type: "application/json" });   
-  const url = URL.createObjectURL(blob);   
-  const a = document.createElement("a");   
-  a.href = url;   
-  a.download = `read-later-${new Date().toISOString().slice(0, 10)}.json`;   
-  a.click();   
-  URL.revokeObjectURL(url); 
+function exportData() {
+  const json = JSON.stringify(allItems, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `read-later-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function csvField(value) {
+  const s = String(value ?? "");
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function exportCSV() {
+  const rows = [["Title", "URL", "Saved", "Read", "Notes"]];
+  for (const item of allItems.filter((i) => !i.deleted)) {
+    rows.push([
+      item.title,
+      item.url,
+      new Date(item.savedAt).toISOString(),
+      item.read ? "Yes" : "No",
+      item.notes || "",
+    ]);
+  }
+  const csv = rows.map((row) => row.map(csvField).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `read-later-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function importData(file) {   
@@ -325,7 +372,8 @@ document.getElementById("shortcut-btn").addEventListener("click", () => {
   chrome.tabs.create({ url: "chrome://extensions/shortcuts" }); 
 });
 
-document.getElementById("export-btn").addEventListener("click", exportData); 
+document.getElementById("export-btn").addEventListener("click", exportData);
+document.getElementById("export-csv-btn").addEventListener("click", exportCSV); 
 
 document.getElementById("import-input").addEventListener("change", (e) => {   
   if (e.target.files[0]) importData(e.target.files[0]);   
@@ -372,6 +420,43 @@ document.getElementById("settings-btn").addEventListener("click", () => {
 
 document.getElementById("settings-done").addEventListener("click", () => {
   settingsPanel.classList.remove("open");
+});
+
+// --- Notes panel ---
+const notesPanel = document.getElementById("notes-panel");
+const notesPanelTitle = document.getElementById("notes-panel-title");
+const notesPanelUrl = document.getElementById("notes-panel-url");
+const notesTextarea = document.getElementById("notes-textarea");
+let notesEditingUrl = null;
+
+function openNotesPanel(item) {
+  notesEditingUrl = item.url;
+  notesPanelTitle.textContent = item.title;
+  notesPanelUrl.textContent = item.url;
+  notesTextarea.value = item.notes || "";
+  notesPanel.classList.add("open");
+  notesTextarea.focus();
+}
+
+function closeNotesPanel() {
+  notesPanel.classList.remove("open");
+  notesEditingUrl = null;
+}
+
+document.getElementById("notes-save").addEventListener("click", () => {
+  if (notesEditingUrl) setNotes(notesEditingUrl, notesTextarea.value.trim());
+  closeNotesPanel();
+});
+
+document.getElementById("notes-cancel").addEventListener("click", closeNotesPanel);
+
+document.getElementById("notes-panel-open").addEventListener("click", () => {
+  if (!notesEditingUrl) return;
+  const url = notesEditingUrl;
+  setNotes(url, notesTextarea.value.trim());
+  if (!allItems.find((i) => i.url === url)?.read) toggleRead(url);
+  chrome.tabs.create({ url });
+  closeNotesPanel();
 });
 
 document.getElementById("synckey-copy").addEventListener("click", async () => {

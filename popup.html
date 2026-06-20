@@ -45,6 +45,7 @@
       <div class="settings-section-title">Data</div>
       <div class="settings-buttons">
         <button id="export-btn">Export JSON</button>
+        <button id="export-csv-btn">Export CSV</button>
         <label id="import-label">
           Import JSON
           <input id="import-input" type="file" accept=".json" />
@@ -69,6 +70,19 @@
       <span id="synckey-msg"></span>
 
       <button id="settings-done" class="settings-done">Done</button>
+    </div>
+
+    <div id="notes-panel">
+      <div id="notes-panel-title"></div>
+      <button id="notes-panel-open" class="notes-open-link" title="Open article">
+        <span id="notes-panel-url"></span>
+        <span aria-hidden="true">↗</span>
+      </button>
+      <textarea id="notes-textarea" placeholder="Why did you save this?"></textarea>
+      <div class="notes-actions">
+        <button id="notes-cancel">Cancel</button>
+        <button id="notes-save" class="settings-done">Save</button>
+      </div>
     </div>
   </div>
   <script src="popup.js"></script>
