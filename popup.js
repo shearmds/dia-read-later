@@ -44,7 +44,7 @@ const saveBtn = document.getElementById("save-btn");
 
 async function load() {
   buildThemeBar();
-  const { readLater = [], appTheme = 'sunset' } = await chrome.storage.local.get(['readLater', 'appTheme']);
+  const { readLater = [], appTheme = 'ocean' } = await chrome.storage.local.get(['readLater', 'appTheme']);
   applyTheme(appTheme);
   allItems = readLater;
 
