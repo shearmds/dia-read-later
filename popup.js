@@ -166,12 +166,25 @@ function categoryFor(urlString) {
   return null;
 }
 
-function faviconUrl(url) {
-  try {     
-    const origin = new URL(url).origin;     
-    return `${origin}/favicon.ico`;   
-  } catch {     
-    return ""; 
+// Browser's local favicon cache (no third-party request). Only has icons for
+// sites the browser has already seen, so we fall back to Google for the rest.
+function localFaviconUrl(url) {
+  try {
+    const u = new URL(chrome.runtime.getURL("/_favicon/"));
+    u.searchParams.set("pageUrl", url);
+    u.searchParams.set("size", "64");
+    return u.toString();
+  } catch {
+    return "";
+  }
+}
+
+function googleFaviconUrl(url) {
+  try {
+    const host = new URL(url).hostname;
+    return `https://www.google.com/s2/favicons?domain=${host}&sz=64`;
+  } catch {
+    return "";
   }
 }
 
@@ -188,10 +201,19 @@ function render() {
     li.className = "item" + (item.read ? " is-read" : "");     
     li.dataset.url = item.url;     
     
-    const favicon = document.createElement("img");     
-    favicon.className = "item-favicon";     
-    favicon.src = faviconUrl(item.url);     
-    favicon.onerror = () => { favicon.style.visibility = "hidden"; };     
+    const favicon = document.createElement("img");
+    favicon.className = "item-favicon";
+    // Try the browser's local cache first, then Google, then hide.
+    favicon.onerror = () => {
+      const google = googleFaviconUrl(item.url);
+      if (favicon.src !== google && google) {
+        favicon.src = google;
+      } else {
+        favicon.onerror = null;
+        favicon.style.visibility = "hidden";
+      }
+    };
+    favicon.src = localFaviconUrl(item.url) || googleFaviconUrl(item.url);
     
     const body = document.createElement("div");     
     body.className = "item-body";     
