@@ -188,7 +188,22 @@ function googleFaviconUrl(url) {
   }
 }
 
-function render() {   
+// Inline line-icons (lucide-style, currentColor) so the action row reads like
+// the iOS app's SF Symbols rather than mismatched text glyphs.
+const ICONS = {
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-1"/></svg>',
+  note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>',
+  // Open book — "read offline", mirrors the iOS app's book icon.
+  book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  // Closed book — offline unavailable.
+  bookClosed: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5z"/></svg>',
+  // Download — "save for offline".
+  download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M5 21h14"/></svg>',
+};
+
+function render() {
   const items = filtered();   
   listEl.innerHTML = "";   
   if (items.length === 0) {     
@@ -249,20 +264,42 @@ function render() {
     actions.className = "item-actions";
     const readBtn = document.createElement("button");
     readBtn.title = item.read ? "Mark unread" : "Mark read";
-    readBtn.textContent = item.read ? "↩" : "✓";
+    readBtn.innerHTML = item.read ? ICONS.undo : ICONS.check;
     readBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleRead(item.url); });
 
     const noteBtn = document.createElement("button");
     noteBtn.title = item.notes ? "Edit note" : "Add note";
-    noteBtn.textContent = "✎";
+    noteBtn.innerHTML = ICONS.note;
+    if (item.notes) noteBtn.style.color = "#1565c0";
     noteBtn.addEventListener("click", (e) => { e.stopPropagation(); openNotesPanel(item); });
+
+    const offlineBtn = document.createElement("button");
+    const offlineState = item.offline || "none";
+    offlineBtn.className = "offline-btn offline-" + offlineState;
+    if (offlineState === "saved") {
+      offlineBtn.innerHTML = ICONS.book;
+      offlineBtn.title = "Read offline";
+      offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); openReader(item.url); });
+    } else if (offlineState === "requested") {
+      offlineBtn.innerHTML = '<span class="offline-spinner"></span>';
+      offlineBtn.title = "Saving for offline…";
+      offlineBtn.disabled = true;
+    } else if (offlineState === "unavailable") {
+      offlineBtn.innerHTML = ICONS.bookClosed;
+      offlineBtn.title = "Offline not available — click to retry";
+      offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); makeOffline(item.url); });
+    } else {
+      offlineBtn.innerHTML = ICONS.download;
+      offlineBtn.title = "Save for offline";
+      offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); makeOffline(item.url); });
+    }
 
     const deleteBtn = document.createElement("button");
     deleteBtn.title = "Remove";
-    deleteBtn.textContent = "✕";
+    deleteBtn.innerHTML = ICONS.trash;
     deleteBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteItem(item.url); });
 
-    actions.append(readBtn, noteBtn, deleteBtn);
+    actions.append(offlineBtn, readBtn, noteBtn, deleteBtn);
     li.append(favicon, body, actions);     
     li.addEventListener("click", () => {       
       chrome.tabs.create({ url: item.url });       
@@ -323,6 +360,28 @@ async function deleteItem(url) {
   render();
 
   chrome.runtime.sendMessage({ action: 'syncNow' });
+  // GC the offline body (local cache + encrypted remote copy).
+  chrome.runtime.sendMessage({ action: 'deleteBody', url });
+}
+
+// Ask the service worker to capture this article for offline reading. Show the
+// "requested" state immediately, then reflect whatever the worker settled on.
+async function makeOffline(url) {
+  allItems = allItems.map((i) => i.url === url ? { ...i, offline: "requested" } : i);
+  render();
+  try {
+    await chrome.runtime.sendMessage({ action: "makeOffline", url });
+  } catch {
+    // service worker unreachable — fall through to re-read storage
+  }
+  const { readLater = [] } = await chrome.storage.local.get("readLater");
+  allItems = readLater;
+  render();
+}
+
+function openReader(url) {
+  const readerUrl = chrome.runtime.getURL("reader.html") + "?url=" + encodeURIComponent(url);
+  chrome.tabs.create({ url: readerUrl });
 }
 
 function exportData() {

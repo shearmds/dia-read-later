@@ -3,8 +3,8 @@
   "name": "RTL: Research Sync",
   "version": "1.12",
   "description": "Save pages to read later, right from your toolbar.",
-  "permissions": ["activeTab", "storage", "tabs", "alarms", "favicon"],
-  "host_permissions": ["https://readlater-sync.shearm.workers.dev/*"],
+  "permissions": ["activeTab", "storage", "tabs", "alarms", "favicon", "scripting"],
+  "host_permissions": ["https://readlater-sync.shearm.workers.dev/*", "<all_urls>"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
