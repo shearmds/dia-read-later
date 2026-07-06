@@ -333,6 +333,13 @@ async function save() {
   saveBtn.classList.add("saved");
   setTimeout(() => { saveBtn.textContent = "+ Save"; saveBtn.classList.remove("saved"); }, 1500);
   render();
+
+  // Automatically capture an offline copy on save (unless it already has one).
+  // makeOffline runs in the background service worker, so it finishes even if
+  // this popup closes, and it extracts from the already-open active tab.
+  if (!existing || existing.offline !== "saved") {
+    makeOffline(tab.url);
+  }
 }
 
 async function toggleRead(url) {   

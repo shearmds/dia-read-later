@@ -52,6 +52,8 @@ chrome.commands.onCommand.addListener(async (command) => {
     await chrome.storage.local.set({ readLater });
 
     syncWithMenuBar();
+    // Auto-capture an offline copy for the page just saved via the shortcut.
+    makeOffline(tab.url);
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
