@@ -442,7 +442,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "RTL Research Sync Extension/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "RTL Research Sync Extension";
+				INFOPLIST_KEY_CFBundleDisplayName = "Research Sync Extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -477,7 +477,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "RTL Research Sync Extension/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "RTL Research Sync Extension";
+				INFOPLIST_KEY_CFBundleDisplayName = "Research Sync Extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -516,7 +516,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "RTL Research Sync/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "RTL Research Sync";
+				INFOPLIST_KEY_CFBundleDisplayName = "Research Sync";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -558,7 +558,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "RTL Research Sync/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "RTL Research Sync";
+				INFOPLIST_KEY_CFBundleDisplayName = "Research Sync";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;

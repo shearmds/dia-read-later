@@ -39,7 +39,7 @@
     return;
   }
 
-  document.title = (rec.title || 'Reader') + ' — RTL';
+  document.title = (rec.title || 'Reader') + ' — Research Sync';
   document.getElementById('title').textContent = rec.title || '';
   let host = '';
   try { host = new URL(url).hostname; } catch { host = ''; }
