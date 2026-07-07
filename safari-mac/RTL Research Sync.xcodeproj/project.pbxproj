@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 110;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -208,14 +208,14 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2700;
-				LastUpgradeCheck = 2700;
+				LastSwiftUpdateCheck = 2650;
+				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					79D457A82FFC0AB300C1F204 = {
-						CreatedOnToolsVersion = 27.0;
+						CreatedOnToolsVersion = 26.5;
 					};
 					79D457C32FFC0AB400C1F204 = {
-						CreatedOnToolsVersion = 27.0;
+						CreatedOnToolsVersion = 26.5;
 					};
 				};
 			};
@@ -533,7 +533,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mdshear.ReadLater.safari-mac";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
+				REGISTER_APP_GROUPS = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -575,7 +575,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mdshear.ReadLater.safari-mac";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
+				REGISTER_APP_GROUPS = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
