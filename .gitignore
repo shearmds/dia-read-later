@@ -1,2 +1,8 @@
 .DS_Store
 *.zip
+
+# Xcode (safari-mac wrapper project)
+xcuserdata/
+*.xcuserstate
+build/
+DerivedData/
