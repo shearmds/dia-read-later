@@ -42,6 +42,18 @@ let groupByFolder = false;
 // Which folder section headers are collapsed. Also local-only; keyed by
 // folder name (a Set, persisted as an array).
 let collapsedFolders = new Set();
+// The most recently classified item, so its folder can show a "new" dot if
+// that section is collapsed — lets you spot where it landed without
+// hunting. Session-only (this popup's lifetime), cleared once you expand
+// that folder (or it expires — see RECENT_CLASSIFY_DOT_WINDOW_MS).
+let recentlyClassified = null; // { url, folder, at }
+const RECENT_CLASSIFY_DOT_WINDOW_MS = 5 * 60 * 1000;
+
+function recentlyClassifiedFolder() {
+  if (!recentlyClassified) return null;
+  if (Date.now() - recentlyClassified.at > RECENT_CLASSIFY_DOT_WINDOW_MS) return null;
+  return recentlyClassified.folder;
+}
 
 const listEl = document.getElementById("list");
 const emptyEl = document.getElementById("empty");
@@ -72,6 +84,34 @@ async function load() {
 
   render();
 }
+
+// Pick up background-worker writes (e.g. the 1-minute alarm sync, or a
+// classify result landing) while the popup is already open, instead of only
+// refreshing on the next explicit action or reopen.
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local" || !changes.readLater) return;
+  const oldItems = changes.readLater.oldValue || [];
+  const newItems = changes.readLater.newValue || [];
+  const oldFolders = new Map(oldItems.map((i) => [i.url, i.folder]));
+  for (const item of newItems) {
+    // "Existed before with no folder, now has one" — a genuine classify
+    // transition, not a brand-new item or one that already had a folder.
+    if (item.folder && oldFolders.has(item.url) && !oldFolders.get(item.url)) {
+      recentlyClassified = { url: item.url, folder: item.folder, at: Date.now() };
+    }
+  }
+  allItems = newItems;
+  render();
+});
+
+// While any visible item is still within the "Sorting…" window, or the
+// "new" dot is still live, periodically re-render so both correctly fade
+// away on their own once their window elapses, even with no storage change
+// (e.g. classification was skipped because of the daily rate cap).
+setInterval(() => {
+  const hasPending = allItems.some((i) => !i.folder && isPendingClassification(i));
+  if (hasPending || recentlyClassifiedFolder()) render();
+}, 5000);
 
 function filtered() {
   return allItems.filter((item) => {
@@ -216,6 +256,15 @@ const ICONS = {
   download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M5 21h14"/></svg>',
 };
 
+// How long to show "Sorting…" on a folder-less item before assuming
+// classification just isn't coming (rate-capped, no API key, etc.) and
+// falling back to showing nothing rather than a spinner that never resolves.
+const CLASSIFY_PENDING_WINDOW_MS = 3 * 60 * 1000;
+
+function isPendingClassification(item) {
+  return !item.deleted && Date.now() - item.savedAt < CLASSIFY_PENDING_WINDOW_MS;
+}
+
 function buildItemEl(item, { showFolder }) {
   const li = document.createElement("li");
   li.className = "item" + (item.read ? " is-read" : "");
@@ -263,6 +312,14 @@ function buildItemEl(item, { showFolder }) {
     folderTag.className = "item-folder";
     folderTag.textContent = item.folder;
     meta.append(folderTag);
+  } else if (!item.folder && isPendingClassification(item)) {
+    // Shown in both views (unlike the folder tag) — this is meaningful even
+    // inside the "Unsorted" group, since it explains *why* it's still there.
+    const pending = document.createElement("span");
+    pending.className = "item-sorting";
+    pending.title = "AI is assigning a folder — usually takes a few seconds";
+    pending.innerHTML = '<span class="item-sorting-spinner"></span>Sorting…';
+    meta.append(pending);
   }
   if (item.notes) {
     const noteIndicator = document.createElement("span");
@@ -372,14 +429,26 @@ function render() {
     const label = document.createElement("span");
     label.textContent = folderName;
 
+    header.append(chevron, label);
+
+    // Only meaningful while collapsed — if the section is already open,
+    // the newly-classified item is already visible in place, no dot needed.
+    if (isCollapsed && recentlyClassifiedFolder() === folderName) {
+      const dot = document.createElement("span");
+      dot.className = "group-header-dot";
+      dot.title = "A new item just landed here";
+      header.append(dot);
+    }
+
     const count = document.createElement("span");
     count.className = "group-header-count";
     count.textContent = groupItems.length;
+    header.append(count);
 
-    header.append(chevron, label, count);
     header.addEventListener("click", async () => {
       if (collapsedFolders.has(folderName)) {
         collapsedFolders.delete(folderName);
+        if (recentlyClassified?.folder === folderName) recentlyClassified = null;
       } else {
         collapsedFolders.add(folderName);
       }
