@@ -43,12 +43,14 @@
 /* Begin PBXCopyFilesBuildPhase section */
 		79D457D12FFC0AB400C1F204 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
 			dstPath = "";
-			dstSubfolder = PlugIns;
+			dstSubfolderSpec = 13;
 			files = (
 				79D457C52FFC0AB400C1F204 /* RTL Research Sync Extension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -82,13 +84,17 @@
 /* Begin PBXFrameworksBuildPhase section */
 		79D457A62FFC0AB300C1F204 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
 			files = (
 			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 		79D457C12FFC0AB400C1F204 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
 			files = (
 			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
@@ -196,6 +202,8 @@
 			);
 			buildRules = (
 			);
+			dependencies = (
+			);
 			name = "RTL Research Sync Extension";
 			productName = "RTL Research Sync Extension";
 			productReference = 79D457C42FFC0AB400C1F204 /* RTL Research Sync Extension.appex */;
@@ -242,6 +250,7 @@
 /* Begin PBXResourcesBuildPhase section */
 		79D457A72FFC0AB300C1F204 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
 			files = (
 				79D457B32FFC0AB300C1F204 /* Icon.png in Resources */,
 				79D457BC2FFC0AB300C1F204 /* Main.storyboard in Resources */,
@@ -250,9 +259,11 @@
 				79D457BE2FFC0AB400C1F204 /* Assets.xcassets in Resources */,
 				79D457B52FFC0AB300C1F204 /* Style.css in Resources */,
 			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 		79D457C22FFC0AB400C1F204 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
 			files = (
 				79D457E42FFC0AB400C1F204 /* reader.css in Resources */,
 				79D457E62FFC0AB400C1F204 /* reader.html in Resources */,
@@ -266,22 +277,27 @@
 				79D457E72FFC0AB400C1F204 /* icons in Resources */,
 				79D457E12FFC0AB400C1F204 /* popup.js in Resources */,
 			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		79D457A52FFC0AB300C1F204 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
 			files = (
 				79D457B92FFC0AB300C1F204 /* ViewController.swift in Sources */,
 				79D457AD2FFC0AB300C1F204 /* AppDelegate.swift in Sources */,
 			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 		79D457C02FFC0AB400C1F204 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
 			files = (
 				79D457CA2FFC0AB400C1F204 /* SafariWebExtensionHandler.swift in Sources */,
 			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
@@ -313,7 +329,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		79D457CC2FFC0AB400C1F204 /* Debug configuration for PBXProject "RTL Research Sync" */ = {
+		79D457CC2FFC0AB400C1F204 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -376,7 +392,7 @@
 			};
 			name = Debug;
 		};
-		79D457CD2FFC0AB400C1F204 /* Release configuration for PBXProject "RTL Research Sync" */ = {
+		79D457CD2FFC0AB400C1F204 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -431,12 +447,12 @@
 			};
 			name = Release;
 		};
-		79D457CF2FFC0AB400C1F204 /* Debug configuration for PBXNativeTarget "RTL Research Sync Extension" */ = {
+		79D457CF2FFC0AB400C1F204 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 95E9CZ9HW6;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 95E9CZ9HW6;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -456,7 +472,7 @@
 					SafariServices,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mdshear.ReadLater.safari-mac.Extension";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Research Sync Extension";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -466,12 +482,12 @@
 			};
 			name = Debug;
 		};
-		79D457D02FFC0AB400C1F204 /* Release configuration for PBXNativeTarget "RTL Research Sync Extension" */ = {
+		79D457D02FFC0AB400C1F204 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 95E9CZ9HW6;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 95E9CZ9HW6;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -491,7 +507,7 @@
 					SafariServices,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mdshear.ReadLater.safari-mac.Extension";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Research Sync Extension";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -501,15 +517,16 @@
 			};
 			name = Release;
 		};
-		79D457D32FFC0AB400C1F204 /* Debug configuration for PBXNativeTarget "RTL Research Sync" */ = {
+		79D457D32FFC0AB400C1F204 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 95E9CZ9HW6;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 95E9CZ9HW6;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -517,6 +534,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "RTL Research Sync/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Research Sync";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -524,7 +542,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -532,7 +550,7 @@
 					WebKit,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mdshear.ReadLater.safari-mac";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Research Sync";
 				REGISTER_APP_GROUPS = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -543,15 +561,16 @@
 			};
 			name = Debug;
 		};
-		79D457D42FFC0AB400C1F204 /* Release configuration for PBXNativeTarget "RTL Research Sync" */ = {
+		79D457D42FFC0AB400C1F204 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 95E9CZ9HW6;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 95E9CZ9HW6;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -559,6 +578,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "RTL Research Sync/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Research Sync";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -566,7 +586,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -574,7 +594,7 @@
 					WebKit,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mdshear.ReadLater.safari-mac";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Research Sync";
 				REGISTER_APP_GROUPS = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -591,29 +611,31 @@
 		79D457A42FFC0AB300C1F204 /* Build configuration list for PBXProject "RTL Research Sync" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				79D457CC2FFC0AB400C1F204 /* Debug configuration for PBXProject "RTL Research Sync" */,
-				79D457CD2FFC0AB400C1F204 /* Release configuration for PBXProject "RTL Research Sync" */,
+				79D457CC2FFC0AB400C1F204 /* Debug */,
+				79D457CD2FFC0AB400C1F204 /* Release */,
 			);
+			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		79D457CE2FFC0AB400C1F204 /* Build configuration list for PBXNativeTarget "RTL Research Sync Extension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				79D457CF2FFC0AB400C1F204 /* Debug configuration for PBXNativeTarget "RTL Research Sync Extension" */,
-				79D457D02FFC0AB400C1F204 /* Release configuration for PBXNativeTarget "RTL Research Sync Extension" */,
+				79D457CF2FFC0AB400C1F204 /* Debug */,
+				79D457D02FFC0AB400C1F204 /* Release */,
 			);
+			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		79D457D22FFC0AB400C1F204 /* Build configuration list for PBXNativeTarget "RTL Research Sync" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				79D457D32FFC0AB400C1F204 /* Debug configuration for PBXNativeTarget "RTL Research Sync" */,
-				79D457D42FFC0AB400C1F204 /* Release configuration for PBXNativeTarget "RTL Research Sync" */,
+				79D457D32FFC0AB400C1F204 /* Debug */,
+				79D457D42FFC0AB400C1F204 /* Release */,
 			);
+			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
 	rootObject = 79D457A12FFC0AB300C1F204 /* Project object */;
-	validationLevel = 1;
 }
