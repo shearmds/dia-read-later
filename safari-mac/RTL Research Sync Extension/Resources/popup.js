@@ -34,19 +34,44 @@ function buildThemeBar() {
 
 let allItems = [];
 /* CHANGE: Changed default filter from "all" to "unread" */
-let currentFilter = "unread"; 
-let searchQuery = ""; 
+let currentFilter = "unread";
+let searchQuery = "";
+// Grouped-by-folder view. Local to this browser/extension only — not synced,
+// so Chrome can show folders while the iOS app (say) still shows a flat list.
+let groupByFolder = false;
+// Which folder section headers are collapsed. Also local-only; keyed by
+// folder name (a Set, persisted as an array).
+let collapsedFolders = new Set();
+// The most recently classified item, so its folder can show a "new" dot if
+// that section is collapsed — lets you spot where it landed without
+// hunting. Session-only (this popup's lifetime), cleared once you expand
+// that folder (or it expires — see RECENT_CLASSIFY_DOT_WINDOW_MS).
+let recentlyClassified = null; // { url, folder, at }
+const RECENT_CLASSIFY_DOT_WINDOW_MS = 5 * 60 * 1000;
 
-const listEl = document.getElementById("list"); 
-const emptyEl = document.getElementById("empty"); 
-const searchEl = document.getElementById("search"); 
-const saveBtn = document.getElementById("save-btn"); 
+function recentlyClassifiedFolder() {
+  if (!recentlyClassified) return null;
+  if (Date.now() - recentlyClassified.at > RECENT_CLASSIFY_DOT_WINDOW_MS) return null;
+  return recentlyClassified.folder;
+}
+
+const listEl = document.getElementById("list");
+const emptyEl = document.getElementById("empty");
+const searchEl = document.getElementById("search");
+const searchWrapEl = document.getElementById("search-wrap");
+const searchClearBtn = document.getElementById("search-clear");
+const saveBtn = document.getElementById("save-btn");
+const folderToggleBtn = document.getElementById("folder-toggle");
 
 async function load() {
   buildThemeBar();
-  const { readLater = [], appTheme = 'ocean' } = await chrome.storage.local.get(['readLater', 'appTheme']);
+  const { readLater = [], appTheme = 'ocean', folderView = false, collapsedFolders: storedCollapsed = [] } =
+    await chrome.storage.local.get(['readLater', 'appTheme', 'folderView', 'collapsedFolders']);
   applyTheme(appTheme);
   allItems = readLater;
+  groupByFolder = folderView;
+  collapsedFolders = new Set(storedCollapsed);
+  folderToggleBtn.classList.toggle("active", groupByFolder);
 
   /* CHANGE: Ensure the visual UI classes match our "unread" default on startup */
   document.querySelectorAll(".filter").forEach((b) => {
@@ -57,8 +82,36 @@ async function load() {
     }
   });
 
-  render(); 
+  render();
 }
+
+// Pick up background-worker writes (e.g. the 1-minute alarm sync, or a
+// classify result landing) while the popup is already open, instead of only
+// refreshing on the next explicit action or reopen.
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local" || !changes.readLater) return;
+  const oldItems = changes.readLater.oldValue || [];
+  const newItems = changes.readLater.newValue || [];
+  const oldFolders = new Map(oldItems.map((i) => [i.url, i.folder]));
+  for (const item of newItems) {
+    // "Existed before with no folder, now has one" — a genuine classify
+    // transition, not a brand-new item or one that already had a folder.
+    if (item.folder && oldFolders.has(item.url) && !oldFolders.get(item.url)) {
+      recentlyClassified = { url: item.url, folder: item.folder, at: Date.now() };
+    }
+  }
+  allItems = newItems;
+  render();
+});
+
+// While any visible item is still within the "Sorting…" window, or the
+// "new" dot is still live, periodically re-render so both correctly fade
+// away on their own once their window elapses, even with no storage change
+// (e.g. classification was skipped because of the daily rate cap).
+setInterval(() => {
+  const hasPending = allItems.some((i) => !i.folder && isPendingClassification(i));
+  if (hasPending || recentlyClassifiedFolder()) render();
+}, 5000);
 
 function filtered() {
   return allItems.filter((item) => {
@@ -203,109 +256,212 @@ const ICONS = {
   download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M5 21h14"/></svg>',
 };
 
-function render() {
-  const items = filtered();   
-  listEl.innerHTML = "";   
-  if (items.length === 0) {     
-    emptyEl.classList.add("visible");     
-    return;   
-  }
-  emptyEl.classList.remove("visible");   
-  for (const item of items) {     
-    const li = document.createElement("li");     
-    li.className = "item" + (item.read ? " is-read" : "");     
-    li.dataset.url = item.url;     
-    
-    const favicon = document.createElement("img");
-    favicon.className = "item-favicon";
-    // Try the browser's local cache first, then Google, then hide.
-    favicon.onerror = () => {
-      const google = googleFaviconUrl(item.url);
-      if (favicon.src !== google && google) {
-        favicon.src = google;
-      } else {
-        favicon.onerror = null;
-        favicon.style.visibility = "hidden";
-      }
-    };
-    favicon.src = localFaviconUrl(item.url) || googleFaviconUrl(item.url);
-    
-    const body = document.createElement("div");     
-    body.className = "item-body";     
-    const title = document.createElement("div");     
-    title.className = "item-title";     
-    title.textContent = item.title;     
-    const meta = document.createElement("div");
-    meta.className = "item-meta";
-    const urlEl = document.createElement("span");
-    urlEl.className = "item-url";
-    try { urlEl.textContent = new URL(item.url).hostname; } catch { urlEl.textContent = item.url; }
-    meta.append(urlEl);
-    const category = categoryFor(item.url);
-    if (category) {
-      const tag = document.createElement("span");
-      tag.className = "item-category";
-      tag.textContent = category;
-      const color = CATEGORY_COLORS[category];
-      tag.style.color = color;
-      tag.style.backgroundColor = color + "26"; // ~15% opacity
-      meta.append(tag);
-    }
-    if (item.notes) {
-      const noteIndicator = document.createElement("span");
-      noteIndicator.className = "item-note-indicator";
-      noteIndicator.textContent = "✎";
-      noteIndicator.title = "Has a note";
-      meta.append(noteIndicator);
-    }
-    body.append(title, meta);
+// How long to show "Sorting…" on a folder-less item before assuming
+// classification just isn't coming (rate-capped, no API key, etc.) and
+// falling back to showing nothing rather than a spinner that never resolves.
+const CLASSIFY_PENDING_WINDOW_MS = 3 * 60 * 1000;
 
-    const actions = document.createElement("div");
-    actions.className = "item-actions";
-    const readBtn = document.createElement("button");
-    readBtn.title = item.read ? "Mark unread" : "Mark read";
-    readBtn.innerHTML = item.read ? ICONS.undo : ICONS.check;
-    readBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleRead(item.url); });
+function isPendingClassification(item) {
+  return !item.deleted && Date.now() - item.savedAt < CLASSIFY_PENDING_WINDOW_MS;
+}
 
-    const noteBtn = document.createElement("button");
-    noteBtn.title = item.notes ? "Edit note" : "Add note";
-    noteBtn.innerHTML = ICONS.note;
-    if (item.notes) noteBtn.style.color = "#1565c0";
-    noteBtn.addEventListener("click", (e) => { e.stopPropagation(); openNotesPanel(item); });
+function buildItemEl(item, { showFolder }) {
+  const li = document.createElement("li");
+  li.className = "item" + (item.read ? " is-read" : "");
+  li.dataset.url = item.url;
 
-    const offlineBtn = document.createElement("button");
-    const offlineState = item.offline || "none";
-    offlineBtn.className = "offline-btn offline-" + offlineState;
-    if (offlineState === "saved") {
-      offlineBtn.innerHTML = ICONS.book;
-      offlineBtn.title = "Read offline";
-      offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); openReader(item.url); });
-    } else if (offlineState === "requested") {
-      offlineBtn.innerHTML = '<span class="offline-spinner"></span>';
-      offlineBtn.title = "Saving for offline…";
-      offlineBtn.disabled = true;
-    } else if (offlineState === "unavailable") {
-      offlineBtn.innerHTML = ICONS.bookClosed;
-      offlineBtn.title = "Offline not available — click to retry";
-      offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); makeOffline(item.url); });
+  const favicon = document.createElement("img");
+  favicon.className = "item-favicon";
+  // Try the browser's local cache first, then Google, then hide.
+  favicon.onerror = () => {
+    const google = googleFaviconUrl(item.url);
+    if (favicon.src !== google && google) {
+      favicon.src = google;
     } else {
-      offlineBtn.innerHTML = ICONS.download;
-      offlineBtn.title = "Save for offline";
-      offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); makeOffline(item.url); });
+      favicon.onerror = null;
+      favicon.style.visibility = "hidden";
+    }
+  };
+  favicon.src = localFaviconUrl(item.url) || googleFaviconUrl(item.url);
+
+  const body = document.createElement("div");
+  body.className = "item-body";
+  const title = document.createElement("div");
+  title.className = "item-title";
+  title.textContent = item.title;
+  const meta = document.createElement("div");
+  meta.className = "item-meta";
+  const urlEl = document.createElement("span");
+  urlEl.className = "item-url";
+  try { urlEl.textContent = new URL(item.url).hostname; } catch { urlEl.textContent = item.url; }
+  meta.append(urlEl);
+  const category = categoryFor(item.url);
+  if (category) {
+    const tag = document.createElement("span");
+    tag.className = "item-category";
+    tag.textContent = category;
+    const color = CATEGORY_COLORS[category];
+    tag.style.color = color;
+    tag.style.backgroundColor = color + "26"; // ~15% opacity
+    meta.append(tag);
+  }
+  // Only shown in flat view — in grouped view the folder is already the
+  // section header, so repeating it on every item would be redundant.
+  if (showFolder && item.folder) {
+    const folderTag = document.createElement("span");
+    folderTag.className = "item-folder";
+    folderTag.textContent = item.folder;
+    meta.append(folderTag);
+  } else if (!item.folder && isPendingClassification(item)) {
+    // Shown in both views (unlike the folder tag) — this is meaningful even
+    // inside the "Unsorted" group, since it explains *why* it's still there.
+    const pending = document.createElement("span");
+    pending.className = "item-sorting";
+    pending.title = "AI is assigning a folder — usually takes a few seconds";
+    pending.innerHTML = '<span class="item-sorting-spinner"></span>Sorting…';
+    meta.append(pending);
+  }
+  if (item.notes) {
+    const noteIndicator = document.createElement("span");
+    noteIndicator.className = "item-note-indicator";
+    noteIndicator.textContent = "✎";
+    noteIndicator.title = "Has a note";
+    meta.append(noteIndicator);
+  }
+  body.append(title, meta);
+
+  const actions = document.createElement("div");
+  actions.className = "item-actions";
+  const readBtn = document.createElement("button");
+  readBtn.title = item.read ? "Mark unread" : "Mark read";
+  readBtn.innerHTML = item.read ? ICONS.undo : ICONS.check;
+  readBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleRead(item.url); });
+
+  const noteBtn = document.createElement("button");
+  noteBtn.title = item.notes ? "Edit note" : "Add note";
+  noteBtn.innerHTML = ICONS.note;
+  if (item.notes) noteBtn.style.color = "#1565c0";
+  noteBtn.addEventListener("click", (e) => { e.stopPropagation(); openNotesPanel(item); });
+
+  const offlineBtn = document.createElement("button");
+  const offlineState = item.offline || "none";
+  offlineBtn.className = "offline-btn offline-" + offlineState;
+  if (offlineState === "saved") {
+    offlineBtn.innerHTML = ICONS.book;
+    offlineBtn.title = "Read offline";
+    offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); openReader(item.url); });
+  } else if (offlineState === "requested") {
+    offlineBtn.innerHTML = '<span class="offline-spinner"></span>';
+    offlineBtn.title = "Saving for offline…";
+    offlineBtn.disabled = true;
+  } else if (offlineState === "unavailable") {
+    offlineBtn.innerHTML = ICONS.bookClosed;
+    offlineBtn.title = "Offline not available — click to retry";
+    offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); makeOffline(item.url); });
+  } else {
+    offlineBtn.innerHTML = ICONS.download;
+    offlineBtn.title = "Save for offline";
+    offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); makeOffline(item.url); });
+  }
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.title = "Remove";
+  deleteBtn.innerHTML = ICONS.trash;
+  deleteBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteItem(item.url); });
+
+  actions.append(offlineBtn, readBtn, noteBtn, deleteBtn);
+  li.append(favicon, body, actions);
+  li.addEventListener("click", () => {
+    chrome.tabs.create({ url: item.url });
+    if (!item.read) toggleRead(item.url);
+  });
+  return li;
+}
+
+const UNSORTED = "Unsorted";
+
+function render() {
+  const items = filtered();
+  listEl.innerHTML = "";
+  if (items.length === 0) {
+    emptyEl.classList.add("visible");
+    return;
+  }
+  emptyEl.classList.remove("visible");
+
+  // Searching wants a flat scan of every match, not results scattered
+  // (and possibly hidden in a collapsed section) across folders — so a
+  // search query suppresses grouping without changing the saved preference.
+  const effectiveGrouped = groupByFolder && !searchQuery;
+
+  if (!effectiveGrouped) {
+    for (const item of items) {
+      listEl.appendChild(buildItemEl(item, { showFolder: true }));
+    }
+    return;
+  }
+
+  // Group by folder, preserving each group's internal (already-sorted) order.
+  // Named folders come first (alphabetically); "Unsorted" always comes last —
+  // it's not a real folder, just everything the classifier hasn't reached yet.
+  const groups = new Map();
+  for (const item of items) {
+    const key = item.folder || UNSORTED;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  }
+  const folderNames = [...groups.keys()]
+    .filter((k) => k !== UNSORTED)
+    .sort((a, b) => a.localeCompare(b));
+  if (groups.has(UNSORTED)) folderNames.push(UNSORTED);
+
+  for (const folderName of folderNames) {
+    const groupItems = groups.get(folderName);
+    const isCollapsed = collapsedFolders.has(folderName);
+
+    const header = document.createElement("li");
+    header.className = "group-header" + (isCollapsed ? " collapsed" : "");
+
+    const chevron = document.createElement("span");
+    chevron.className = "group-header-chevron";
+    chevron.textContent = "▾";
+
+    const label = document.createElement("span");
+    label.textContent = folderName;
+
+    header.append(chevron, label);
+
+    // Only meaningful while collapsed — if the section is already open,
+    // the newly-classified item is already visible in place, no dot needed.
+    if (isCollapsed && recentlyClassifiedFolder() === folderName) {
+      const dot = document.createElement("span");
+      dot.className = "group-header-dot";
+      dot.title = "A new item just landed here";
+      header.append(dot);
     }
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.title = "Remove";
-    deleteBtn.innerHTML = ICONS.trash;
-    deleteBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteItem(item.url); });
+    const count = document.createElement("span");
+    count.className = "group-header-count";
+    count.textContent = groupItems.length;
+    header.append(count);
 
-    actions.append(offlineBtn, readBtn, noteBtn, deleteBtn);
-    li.append(favicon, body, actions);     
-    li.addEventListener("click", () => {       
-      chrome.tabs.create({ url: item.url });       
-      if (!item.read) toggleRead(item.url);     
-    });     
-    listEl.appendChild(li); 
+    header.addEventListener("click", async () => {
+      if (collapsedFolders.has(folderName)) {
+        collapsedFolders.delete(folderName);
+        if (recentlyClassified?.folder === folderName) recentlyClassified = null;
+      } else {
+        collapsedFolders.add(folderName);
+      }
+      await chrome.storage.local.set({ collapsedFolders: [...collapsedFolders] });
+      render();
+    });
+    listEl.appendChild(header);
+
+    if (!isCollapsed) {
+      for (const item of groupItems) {
+        listEl.appendChild(buildItemEl(item, { showFolder: false }));
+      }
+    }
   }
 }
 
@@ -408,13 +564,14 @@ function csvField(value) {
 }
 
 function exportCSV() {
-  const rows = [["Title", "URL", "Saved", "Read", "Notes"]];
+  const rows = [["Title", "URL", "Saved", "Read", "Folder", "Notes"]];
   for (const item of allItems.filter((i) => !i.deleted)) {
     rows.push([
       item.title,
       item.url,
       new Date(item.savedAt).toISOString(),
       item.read ? "Yes" : "No",
+      item.folder || "",
       item.notes || "",
     ]);
   }
@@ -470,18 +627,36 @@ document.getElementById("import-input").addEventListener("change", (e) => {
 
 saveBtn.addEventListener("click", save); 
 
-searchEl.addEventListener("input", () => {   
-  searchQuery = searchEl.value.trim();   
-  render(); 
+searchEl.addEventListener("input", () => {
+  searchQuery = searchEl.value.trim();
+  searchWrapEl.classList.toggle("has-value", !!searchQuery);
+  folderToggleBtn.classList.toggle("suspended", groupByFolder && !!searchQuery);
+  render();
 });
 
-document.querySelectorAll(".filter").forEach((btn) => {
+searchClearBtn.addEventListener("click", () => {
+  searchEl.value = "";
+  searchQuery = "";
+  searchWrapEl.classList.remove("has-value");
+  folderToggleBtn.classList.remove("suspended");
+  searchEl.focus();
+  render();
+});
+
+document.querySelectorAll(".filter:not(.filter-toggle)").forEach((btn) => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".filter").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".filter:not(.filter-toggle)").forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     currentFilter = btn.dataset.filter;
     render();
   });
+});
+
+folderToggleBtn.addEventListener("click", async () => {
+  groupByFolder = !groupByFolder;
+  folderToggleBtn.classList.toggle("active", groupByFolder);
+  await chrome.storage.local.set({ folderView: groupByFolder });
+  render();
 });
 
 // --- Settings panel (data + sync key) ---

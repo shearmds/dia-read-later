@@ -190,7 +190,62 @@ async function syncWithMenuBar() {
         // Pull down bodies captured on other devices so they're readable
         // offline here too (best-effort; skips already-cached items).
         offlinePrefetchMissing(items, token).catch(() => {});
+
+        // Classification runs server-side, async, after /sync already
+        // responded — it typically lands within a few seconds, but without
+        // this the client wouldn't find out until the next 1-minute alarm.
+        // A short burst of cheap /items reads (no classify call, so this
+        // can't reintroduce the sync-latency problem we already fixed)
+        // closes that gap while someone's actually got the popup open.
+        const hasFreshUnsorted = items.some(
+            (i) => !i.deleted && !i.folder && Date.now() - i.savedAt < 60_000
+        );
+        if (hasFreshUnsorted) fastPollForClassify(token);
     } catch {
         // Offline — continue working locally, retry on next alarm
+    }
+}
+
+let fastPolling = false;
+
+// Cheap follow-up: GET /items (pure KV read, no classify call) every couple
+// seconds for a short window, so a classify result that lands in the
+// background gets picked up while the popup's likely still open, instead of
+// waiting for the next alarm. Stops early once something changes or nothing
+// is pending anymore.
+async function fastPollForClassify(token, attempts = 5, intervalMs = 2500) {
+    if (fastPolling) return;
+    fastPolling = true;
+    try {
+        for (let i = 0; i < attempts; i++) {
+            await new Promise((r) => setTimeout(r, intervalMs));
+            let res;
+            try {
+                res = await fetch(`${SYNC_URL}/items`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+            } catch {
+                return; // offline — let the normal alarm cadence catch up later
+            }
+            if (!res.ok) continue;
+            const { items } = await res.json();
+
+            const { readLater: current = [] } = await chrome.storage.local.get('readLater');
+            const oldFolders = new Map(current.map((i) => [i.url, i.folder]));
+            const gained = items.some(
+                (i) => i.folder && oldFolders.has(i.url) && !oldFolders.get(i.url)
+            );
+            if (gained) {
+                await chrome.storage.local.set({ readLater: items });
+                return;
+            }
+
+            const stillPending = items.some(
+                (i) => !i.deleted && !i.folder && Date.now() - i.savedAt < 60_000
+            );
+            if (!stillPending) return;
+        }
+    } finally {
+        fastPolling = false;
     }
 }
