@@ -1,5 +1,6 @@
 .DS_Store
 *.zip
+*.dmg
 
 # Xcode (safari-mac wrapper project)
 xcuserdata/

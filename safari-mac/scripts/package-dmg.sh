@@ -117,8 +117,8 @@ create-dmg \
   --icon-size 100 \
   --icon "${APP_NAME}.app" 150 190 \
   --app-drop-link 450 190 \
-  "${BACKGROUND_ARG[@]}" \
-  "${VOLICON_ARG[@]}" \
+  "${BACKGROUND_ARG[@]+"${BACKGROUND_ARG[@]}"}" \
+  "${VOLICON_ARG[@]+"${VOLICON_ARG[@]}"}" \
   "$DMG_PATH" \
   "$STAGE"
 DMG_RESULT=$?
