@@ -21,7 +21,10 @@
         </button>
       </h1>
       <div class="header-actions">
-        <input id="search" type="text" placeholder="Search…" autocomplete="off" />
+        <div id="search-wrap">
+          <input id="search" type="text" placeholder="Search…" autocomplete="off" />
+          <button id="search-clear" title="Clear search" aria-label="Clear search">&times;</button>
+        </div>
         <button id="save-btn" title="Save current page">+ Save</button>
       </div>
     </header>
@@ -30,6 +33,7 @@
       <button class="filter active" data-filter="all">All</button>
       <button class="filter" data-filter="unread">Unread</button>
       <button class="filter" data-filter="read">Read</button>
+      <button id="folder-toggle" class="filter filter-toggle" title="Group by folder">📁 Folders</button>
     </div>
 
     <div id="theme-bar"></div>

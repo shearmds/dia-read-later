@@ -34,19 +34,32 @@ function buildThemeBar() {
 
 let allItems = [];
 /* CHANGE: Changed default filter from "all" to "unread" */
-let currentFilter = "unread"; 
-let searchQuery = ""; 
+let currentFilter = "unread";
+let searchQuery = "";
+// Grouped-by-folder view. Local to this browser/extension only — not synced,
+// so Chrome can show folders while the iOS app (say) still shows a flat list.
+let groupByFolder = false;
+// Which folder section headers are collapsed. Also local-only; keyed by
+// folder name (a Set, persisted as an array).
+let collapsedFolders = new Set();
 
-const listEl = document.getElementById("list"); 
-const emptyEl = document.getElementById("empty"); 
-const searchEl = document.getElementById("search"); 
-const saveBtn = document.getElementById("save-btn"); 
+const listEl = document.getElementById("list");
+const emptyEl = document.getElementById("empty");
+const searchEl = document.getElementById("search");
+const searchWrapEl = document.getElementById("search-wrap");
+const searchClearBtn = document.getElementById("search-clear");
+const saveBtn = document.getElementById("save-btn");
+const folderToggleBtn = document.getElementById("folder-toggle");
 
 async function load() {
   buildThemeBar();
-  const { readLater = [], appTheme = 'ocean' } = await chrome.storage.local.get(['readLater', 'appTheme']);
+  const { readLater = [], appTheme = 'ocean', folderView = false, collapsedFolders: storedCollapsed = [] } =
+    await chrome.storage.local.get(['readLater', 'appTheme', 'folderView', 'collapsedFolders']);
   applyTheme(appTheme);
   allItems = readLater;
+  groupByFolder = folderView;
+  collapsedFolders = new Set(storedCollapsed);
+  folderToggleBtn.classList.toggle("active", groupByFolder);
 
   /* CHANGE: Ensure the visual UI classes match our "unread" default on startup */
   document.querySelectorAll(".filter").forEach((b) => {
@@ -57,7 +70,7 @@ async function load() {
     }
   });
 
-  render(); 
+  render();
 }
 
 function filtered() {
@@ -203,109 +216,183 @@ const ICONS = {
   download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M5 21h14"/></svg>',
 };
 
-function render() {
-  const items = filtered();   
-  listEl.innerHTML = "";   
-  if (items.length === 0) {     
-    emptyEl.classList.add("visible");     
-    return;   
-  }
-  emptyEl.classList.remove("visible");   
-  for (const item of items) {     
-    const li = document.createElement("li");     
-    li.className = "item" + (item.read ? " is-read" : "");     
-    li.dataset.url = item.url;     
-    
-    const favicon = document.createElement("img");
-    favicon.className = "item-favicon";
-    // Try the browser's local cache first, then Google, then hide.
-    favicon.onerror = () => {
-      const google = googleFaviconUrl(item.url);
-      if (favicon.src !== google && google) {
-        favicon.src = google;
-      } else {
-        favicon.onerror = null;
-        favicon.style.visibility = "hidden";
-      }
-    };
-    favicon.src = localFaviconUrl(item.url) || googleFaviconUrl(item.url);
-    
-    const body = document.createElement("div");     
-    body.className = "item-body";     
-    const title = document.createElement("div");     
-    title.className = "item-title";     
-    title.textContent = item.title;     
-    const meta = document.createElement("div");
-    meta.className = "item-meta";
-    const urlEl = document.createElement("span");
-    urlEl.className = "item-url";
-    try { urlEl.textContent = new URL(item.url).hostname; } catch { urlEl.textContent = item.url; }
-    meta.append(urlEl);
-    const category = categoryFor(item.url);
-    if (category) {
-      const tag = document.createElement("span");
-      tag.className = "item-category";
-      tag.textContent = category;
-      const color = CATEGORY_COLORS[category];
-      tag.style.color = color;
-      tag.style.backgroundColor = color + "26"; // ~15% opacity
-      meta.append(tag);
-    }
-    if (item.notes) {
-      const noteIndicator = document.createElement("span");
-      noteIndicator.className = "item-note-indicator";
-      noteIndicator.textContent = "✎";
-      noteIndicator.title = "Has a note";
-      meta.append(noteIndicator);
-    }
-    body.append(title, meta);
+function buildItemEl(item, { showFolder }) {
+  const li = document.createElement("li");
+  li.className = "item" + (item.read ? " is-read" : "");
+  li.dataset.url = item.url;
 
-    const actions = document.createElement("div");
-    actions.className = "item-actions";
-    const readBtn = document.createElement("button");
-    readBtn.title = item.read ? "Mark unread" : "Mark read";
-    readBtn.innerHTML = item.read ? ICONS.undo : ICONS.check;
-    readBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleRead(item.url); });
-
-    const noteBtn = document.createElement("button");
-    noteBtn.title = item.notes ? "Edit note" : "Add note";
-    noteBtn.innerHTML = ICONS.note;
-    if (item.notes) noteBtn.style.color = "#1565c0";
-    noteBtn.addEventListener("click", (e) => { e.stopPropagation(); openNotesPanel(item); });
-
-    const offlineBtn = document.createElement("button");
-    const offlineState = item.offline || "none";
-    offlineBtn.className = "offline-btn offline-" + offlineState;
-    if (offlineState === "saved") {
-      offlineBtn.innerHTML = ICONS.book;
-      offlineBtn.title = "Read offline";
-      offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); openReader(item.url); });
-    } else if (offlineState === "requested") {
-      offlineBtn.innerHTML = '<span class="offline-spinner"></span>';
-      offlineBtn.title = "Saving for offline…";
-      offlineBtn.disabled = true;
-    } else if (offlineState === "unavailable") {
-      offlineBtn.innerHTML = ICONS.bookClosed;
-      offlineBtn.title = "Offline not available — click to retry";
-      offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); makeOffline(item.url); });
+  const favicon = document.createElement("img");
+  favicon.className = "item-favicon";
+  // Try the browser's local cache first, then Google, then hide.
+  favicon.onerror = () => {
+    const google = googleFaviconUrl(item.url);
+    if (favicon.src !== google && google) {
+      favicon.src = google;
     } else {
-      offlineBtn.innerHTML = ICONS.download;
-      offlineBtn.title = "Save for offline";
-      offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); makeOffline(item.url); });
+      favicon.onerror = null;
+      favicon.style.visibility = "hidden";
     }
+  };
+  favicon.src = localFaviconUrl(item.url) || googleFaviconUrl(item.url);
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.title = "Remove";
-    deleteBtn.innerHTML = ICONS.trash;
-    deleteBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteItem(item.url); });
+  const body = document.createElement("div");
+  body.className = "item-body";
+  const title = document.createElement("div");
+  title.className = "item-title";
+  title.textContent = item.title;
+  const meta = document.createElement("div");
+  meta.className = "item-meta";
+  const urlEl = document.createElement("span");
+  urlEl.className = "item-url";
+  try { urlEl.textContent = new URL(item.url).hostname; } catch { urlEl.textContent = item.url; }
+  meta.append(urlEl);
+  const category = categoryFor(item.url);
+  if (category) {
+    const tag = document.createElement("span");
+    tag.className = "item-category";
+    tag.textContent = category;
+    const color = CATEGORY_COLORS[category];
+    tag.style.color = color;
+    tag.style.backgroundColor = color + "26"; // ~15% opacity
+    meta.append(tag);
+  }
+  // Only shown in flat view — in grouped view the folder is already the
+  // section header, so repeating it on every item would be redundant.
+  if (showFolder && item.folder) {
+    const folderTag = document.createElement("span");
+    folderTag.className = "item-folder";
+    folderTag.textContent = item.folder;
+    meta.append(folderTag);
+  }
+  if (item.notes) {
+    const noteIndicator = document.createElement("span");
+    noteIndicator.className = "item-note-indicator";
+    noteIndicator.textContent = "✎";
+    noteIndicator.title = "Has a note";
+    meta.append(noteIndicator);
+  }
+  body.append(title, meta);
 
-    actions.append(offlineBtn, readBtn, noteBtn, deleteBtn);
-    li.append(favicon, body, actions);     
-    li.addEventListener("click", () => {       
-      chrome.tabs.create({ url: item.url });       
-      if (!item.read) toggleRead(item.url);     
-    });     
-    listEl.appendChild(li); 
+  const actions = document.createElement("div");
+  actions.className = "item-actions";
+  const readBtn = document.createElement("button");
+  readBtn.title = item.read ? "Mark unread" : "Mark read";
+  readBtn.innerHTML = item.read ? ICONS.undo : ICONS.check;
+  readBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleRead(item.url); });
+
+  const noteBtn = document.createElement("button");
+  noteBtn.title = item.notes ? "Edit note" : "Add note";
+  noteBtn.innerHTML = ICONS.note;
+  if (item.notes) noteBtn.style.color = "#1565c0";
+  noteBtn.addEventListener("click", (e) => { e.stopPropagation(); openNotesPanel(item); });
+
+  const offlineBtn = document.createElement("button");
+  const offlineState = item.offline || "none";
+  offlineBtn.className = "offline-btn offline-" + offlineState;
+  if (offlineState === "saved") {
+    offlineBtn.innerHTML = ICONS.book;
+    offlineBtn.title = "Read offline";
+    offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); openReader(item.url); });
+  } else if (offlineState === "requested") {
+    offlineBtn.innerHTML = '<span class="offline-spinner"></span>';
+    offlineBtn.title = "Saving for offline…";
+    offlineBtn.disabled = true;
+  } else if (offlineState === "unavailable") {
+    offlineBtn.innerHTML = ICONS.bookClosed;
+    offlineBtn.title = "Offline not available — click to retry";
+    offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); makeOffline(item.url); });
+  } else {
+    offlineBtn.innerHTML = ICONS.download;
+    offlineBtn.title = "Save for offline";
+    offlineBtn.addEventListener("click", (e) => { e.stopPropagation(); makeOffline(item.url); });
+  }
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.title = "Remove";
+  deleteBtn.innerHTML = ICONS.trash;
+  deleteBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteItem(item.url); });
+
+  actions.append(offlineBtn, readBtn, noteBtn, deleteBtn);
+  li.append(favicon, body, actions);
+  li.addEventListener("click", () => {
+    chrome.tabs.create({ url: item.url });
+    if (!item.read) toggleRead(item.url);
+  });
+  return li;
+}
+
+const UNSORTED = "Unsorted";
+
+function render() {
+  const items = filtered();
+  listEl.innerHTML = "";
+  if (items.length === 0) {
+    emptyEl.classList.add("visible");
+    return;
+  }
+  emptyEl.classList.remove("visible");
+
+  // Searching wants a flat scan of every match, not results scattered
+  // (and possibly hidden in a collapsed section) across folders — so a
+  // search query suppresses grouping without changing the saved preference.
+  const effectiveGrouped = groupByFolder && !searchQuery;
+
+  if (!effectiveGrouped) {
+    for (const item of items) {
+      listEl.appendChild(buildItemEl(item, { showFolder: true }));
+    }
+    return;
+  }
+
+  // Group by folder, preserving each group's internal (already-sorted) order.
+  // Named folders come first (alphabetically); "Unsorted" always comes last —
+  // it's not a real folder, just everything the classifier hasn't reached yet.
+  const groups = new Map();
+  for (const item of items) {
+    const key = item.folder || UNSORTED;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  }
+  const folderNames = [...groups.keys()]
+    .filter((k) => k !== UNSORTED)
+    .sort((a, b) => a.localeCompare(b));
+  if (groups.has(UNSORTED)) folderNames.push(UNSORTED);
+
+  for (const folderName of folderNames) {
+    const groupItems = groups.get(folderName);
+    const isCollapsed = collapsedFolders.has(folderName);
+
+    const header = document.createElement("li");
+    header.className = "group-header" + (isCollapsed ? " collapsed" : "");
+
+    const chevron = document.createElement("span");
+    chevron.className = "group-header-chevron";
+    chevron.textContent = "▾";
+
+    const label = document.createElement("span");
+    label.textContent = folderName;
+
+    const count = document.createElement("span");
+    count.className = "group-header-count";
+    count.textContent = groupItems.length;
+
+    header.append(chevron, label, count);
+    header.addEventListener("click", async () => {
+      if (collapsedFolders.has(folderName)) {
+        collapsedFolders.delete(folderName);
+      } else {
+        collapsedFolders.add(folderName);
+      }
+      await chrome.storage.local.set({ collapsedFolders: [...collapsedFolders] });
+      render();
+    });
+    listEl.appendChild(header);
+
+    if (!isCollapsed) {
+      for (const item of groupItems) {
+        listEl.appendChild(buildItemEl(item, { showFolder: false }));
+      }
+    }
   }
 }
 
@@ -408,13 +495,14 @@ function csvField(value) {
 }
 
 function exportCSV() {
-  const rows = [["Title", "URL", "Saved", "Read", "Notes"]];
+  const rows = [["Title", "URL", "Saved", "Read", "Folder", "Notes"]];
   for (const item of allItems.filter((i) => !i.deleted)) {
     rows.push([
       item.title,
       item.url,
       new Date(item.savedAt).toISOString(),
       item.read ? "Yes" : "No",
+      item.folder || "",
       item.notes || "",
     ]);
   }
@@ -470,18 +558,36 @@ document.getElementById("import-input").addEventListener("change", (e) => {
 
 saveBtn.addEventListener("click", save); 
 
-searchEl.addEventListener("input", () => {   
-  searchQuery = searchEl.value.trim();   
-  render(); 
+searchEl.addEventListener("input", () => {
+  searchQuery = searchEl.value.trim();
+  searchWrapEl.classList.toggle("has-value", !!searchQuery);
+  folderToggleBtn.classList.toggle("suspended", groupByFolder && !!searchQuery);
+  render();
 });
 
-document.querySelectorAll(".filter").forEach((btn) => {
+searchClearBtn.addEventListener("click", () => {
+  searchEl.value = "";
+  searchQuery = "";
+  searchWrapEl.classList.remove("has-value");
+  folderToggleBtn.classList.remove("suspended");
+  searchEl.focus();
+  render();
+});
+
+document.querySelectorAll(".filter:not(.filter-toggle)").forEach((btn) => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".filter").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".filter:not(.filter-toggle)").forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     currentFilter = btn.dataset.filter;
     render();
   });
+});
+
+folderToggleBtn.addEventListener("click", async () => {
+  groupByFolder = !groupByFolder;
+  folderToggleBtn.classList.toggle("active", groupByFolder);
+  await chrome.storage.local.set({ folderView: groupByFolder });
+  render();
 });
 
 // --- Settings panel (data + sync key) ---

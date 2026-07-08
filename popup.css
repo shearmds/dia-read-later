@@ -42,9 +42,11 @@ h1 {
 }
 .header-actions { display: flex; gap: 8px; }
 
+#search-wrap { position: relative; flex: 1; display: flex; align-items: center; }
+
 #search {
-  flex: 1;
-  padding: 6px 10px;
+  width: 100%;
+  padding: 6px 26px 6px 10px;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 8px;
   font-size: 13px;
@@ -59,6 +61,37 @@ h1 {
   color: #1a1a1a;
 }
 #search:focus::placeholder { color: #8e8e93; }
+
+#search-clear {
+  position: absolute;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: none;
+  /* Matches #search's own unfocused text color (white), not inherited from
+     the blue header — inherit made this invisible once the field turns
+     white on focus, since a sibling never picks up #search:focus's color. */
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+}
+#search-clear:hover { opacity: 1; background: rgba(255, 255, 255, 0.25); }
+#search-wrap.has-value #search-clear { display: flex; }
+
+#search-wrap:focus-within #search-clear {
+  color: #8e8e93;
+}
+#search-wrap:focus-within #search-clear:hover {
+  color: #1a1a1a;
+  background: rgba(0, 0, 0, 0.08);
+}
 
 #save-btn {
   padding: 6px 12px;
@@ -92,6 +125,44 @@ h1 {
   color: #555;
 }
 .filter.active { background: var(--theme-end); color: #fff; border-color: var(--theme-end); }
+
+.filter-toggle { margin-left: auto; }
+/* Grouping is temporarily overridden by an active search — the toggle stays
+   "on" (so it resumes once the search clears) but reads as paused, not off. */
+.filter-toggle.active.suspended {
+  background: transparent;
+  color: var(--theme-end);
+  opacity: 0.6;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8e8e93;
+  cursor: pointer;
+  user-select: none;
+}
+.group-header:first-child { padding-top: 4px; }
+.group-header:hover { color: #48484c; }
+
+.group-header-chevron {
+  font-size: 10px;
+  transition: transform 0.12s;
+  transform: rotate(0deg);
+}
+.group-header.collapsed .group-header-chevron { transform: rotate(-90deg); }
+
+.group-header-count {
+  margin-left: auto;
+  font-weight: 600;
+  color: #c7c7cc;
+}
 
 #theme-bar {
   display: flex;
@@ -176,6 +247,16 @@ h1 {
   padding: 1px 6px;
   border-radius: 999px;
   flex-shrink: 0;
+}
+
+.item-folder {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  color: #6b3fa0;
+  background: rgba(107, 63, 160, 0.15);
 }
 
 .item-actions {
