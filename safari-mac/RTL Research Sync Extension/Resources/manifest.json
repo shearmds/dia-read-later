@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Research Sync",
-  "version": "2.1",
+  "version": "2.2",
   "description": "Save pages to read later, right from your toolbar.",
   "permissions": ["activeTab", "storage", "tabs", "alarms", "favicon", "scripting"],
   "host_permissions": ["https://readlater-sync.shearm.workers.dev/*", "<all_urls>"],
