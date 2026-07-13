@@ -8,7 +8,9 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 15px;
-  background: #f9f9fb;
+  /* Whisper of the selected theme behind the content (matches the app). */
+  background: linear-gradient(180deg, #ffffff 0%,
+              color-mix(in srgb, var(--theme-start) 7%, #ffffff) 100%);
   color: #1a1a1a;
   width: 440px;
   min-height: 200px;
@@ -26,16 +28,24 @@ body {
 #app { display: flex; flex-direction: column; height: 100%; }
 
 header {
-  padding: 14px 14px 12px;
-  background: linear-gradient(135deg, var(--theme-start) 0%, var(--theme-end) 100%);
-  color: #fff;
+  margin: 10px 10px 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  color: #1a1a1a;
+  /* White fill framed by a themed gradient border — the same "outlined header
+     card" the iOS app uses, rather than a full gradient banner. */
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(135deg, var(--theme-start), var(--theme-end)) border-box;
+  box-shadow: 0 3px 8px color-mix(in srgb, var(--theme-start) 18%, transparent);
 }
 
 h1 {
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 10px;
-  color: #fff;
+  color: #1a1a1a;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -46,21 +56,21 @@ h1 {
 
 #search {
   width: 100%;
-  padding: 6px 26px 6px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 8px;
+  padding: 7px 26px 7px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
   font-size: 13px;
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
+  background: rgba(0, 0, 0, 0.05);
+  color: #1a1a1a;
   outline: none;
 }
-#search::placeholder { color: rgba(255, 255, 255, 0.75); }
+#search::placeholder { color: #8e8e93; }
 #search:focus {
-  border-color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--theme-end);
+  background: #fff;
   color: #1a1a1a;
 }
-#search:focus::placeholder { color: #8e8e93; }
+#search:focus::placeholder { color: #b0b0b5; }
 
 #search-clear {
   position: absolute;
@@ -69,10 +79,7 @@ h1 {
   height: 20px;
   border: none;
   background: none;
-  /* Matches #search's own unfocused text color (white), not inherited from
-     the blue header — inherit made this invisible once the field turns
-     white on focus, since a sibling never picks up #search:focus's color. */
-  color: #fff;
+  color: #8e8e93;
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
@@ -82,7 +89,7 @@ h1 {
   justify-content: center;
   opacity: 0.85;
 }
-#search-clear:hover { opacity: 1; background: rgba(255, 255, 255, 0.25); }
+#search-clear:hover { opacity: 1; background: rgba(0, 0, 0, 0.08); }
 #search-wrap.has-value #search-clear { display: flex; }
 
 #search-wrap:focus-within #search-clear {
@@ -94,32 +101,36 @@ h1 {
 }
 
 #save-btn {
-  padding: 6px 12px;
-  background: #fff;
-  color: var(--theme-end);
+  padding: 7px 14px;
+  background: linear-gradient(135deg, var(--theme-start), var(--theme-end));
+  color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--theme-end) 30%, transparent);
 }
-#save-btn:hover { background: #fff5f8; }
-#save-btn.saved { background: #34c759; color: #fff; }
+#save-btn:hover { filter: brightness(1.06); }
+#save-btn.saved {
+  background: #34c759;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(52, 199, 89, 0.3);
+}
 
 #filter-bar {
   display: flex;
   gap: 6px;
-  padding: 8px 14px;
-  background: #fff;
-  border-bottom: 1px solid #e5e5ea;
+  padding: 6px 12px 4px;
+  background: transparent;
 }
 
 .filter {
-  padding: 3px 10px;
-  border: 1px solid #d1d1d6;
+  padding: 4px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 20px;
-  background: transparent;
+  background: #fff;
   font-size: 12px;
   cursor: pointer;
   color: #555;
@@ -127,6 +138,14 @@ h1 {
 .filter.active { background: var(--theme-end); color: #fff; border-color: var(--theme-end); }
 
 .filter-toggle { margin-left: auto; }
+/* Folder grouping toggle: an icon-only pill (matches the iOS app's folder glyph). */
+#folder-toggle {
+  padding: 5px 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+#folder-toggle svg { display: block; }
 /* Grouping is temporarily overridden by an active search — the toggle stays
    "on" (so it resumes once the search clears) but reads as paused, not off. */
 .filter-toggle.active.suspended {
@@ -172,14 +191,14 @@ h1 {
   flex-shrink: 0;
 }
 
+/* Theme swatches — now live in the Settings panel (like the iOS app). */
 #theme-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 7px 14px;
-  background: #fff;
-  border-bottom: 1px solid #e5e5ea;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 2px 0;
+  background: transparent;
 }
 
 .theme-swatch {
@@ -198,19 +217,38 @@ h1 {
   flex: 1;
   overflow-y: auto;
   list-style: none;
-  padding: 8px 0;
+  padding: 4px 0 10px;
 }
 
+/* Each saved page is a white card with a theme-gradient accent spine on the
+   left (muted grey once read) — the signature ReadLater/QuickNote row. */
 .item {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 11px 16px;
-  border-bottom: 1px solid #f0f0f5;
+  margin: 8px 12px;
+  padding: 11px 14px 11px 16px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   cursor: pointer;
+  transition: box-shadow 0.15s;
 }
-.item:hover { background: #f2f2f7; }
-.item.is-read { opacity: 0.55; }
+.item::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(135deg, var(--theme-start), var(--theme-end));
+}
+.item:hover { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
+.item.is-read { opacity: 0.7; background: #fbfbfd; }
+.item.is-read::before { background: rgba(0, 0, 0, 0.18); }
 
 .item-favicon {
   width: 18px;
@@ -230,7 +268,7 @@ h1 {
   text-overflow: ellipsis;
   color: #1a1a1a;
 }
-.item.is-read .item-title { text-decoration: line-through; }
+.item.is-read .item-title { color: #8e8e93; }
 
 .item-meta {
   display: flex;
@@ -263,8 +301,8 @@ h1 {
   padding: 1px 6px;
   border-radius: 999px;
   flex-shrink: 0;
-  color: #6b3fa0;
-  background: rgba(107, 63, 160, 0.15);
+  color: var(--theme-end);
+  background: color-mix(in srgb, var(--theme-end) 15%, transparent);
 }
 
 .item-sorting {
@@ -318,7 +356,7 @@ h1 {
 /* Offline button. The "read offline" (saved) and "unavailable" states are kept
    visible (not hover-gated) so availability reads at a glance — like the book
    icon in the iOS app. The "save for offline" download only shows on hover. */
-.offline-btn.offline-saved { color: #34c759; opacity: 1; }
+.offline-btn.offline-saved { color: var(--theme-end); opacity: 1; }
 .offline-btn.offline-requested { color: #8e8e93; opacity: 1; cursor: default; }
 .offline-btn.offline-unavailable { color: #c7c7cc; opacity: 1; }
 .item-actions .offline-btn.offline-saved,
@@ -365,10 +403,10 @@ kbd {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.9);
+  color: #1a1a1a;
   cursor: pointer;
 }
-.icon-btn:hover { background: rgba(255, 255, 255, 0.2); }
+.icon-btn:hover { background: rgba(0, 0, 0, 0.06); }
 
 /* Collapsible settings panel */
 #settings-panel {

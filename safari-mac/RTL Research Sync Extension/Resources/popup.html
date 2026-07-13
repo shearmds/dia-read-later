@@ -33,10 +33,12 @@
       <button class="filter active" data-filter="all">All</button>
       <button class="filter" data-filter="unread">Unread</button>
       <button class="filter" data-filter="read">Read</button>
-      <button id="folder-toggle" class="filter filter-toggle" title="Group by folder">📁 Folders</button>
+      <button id="folder-toggle" class="filter filter-toggle" title="Group by folder" aria-label="Group by folder">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>
+        </svg>
+      </button>
     </div>
-
-    <div id="theme-bar"></div>
 
     <ul id="list"></ul>
 
@@ -46,6 +48,11 @@
     </div>
 
     <div id="settings-panel">
+      <div class="settings-section-title">Theme</div>
+      <div id="theme-bar"></div>
+
+      <div class="settings-divider"></div>
+
       <div class="settings-section-title">Data</div>
       <div class="settings-buttons">
         <button id="export-btn">Export JSON</button>

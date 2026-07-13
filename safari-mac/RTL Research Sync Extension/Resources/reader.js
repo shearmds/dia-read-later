@@ -3,7 +3,31 @@
 // time (see offline.js / background.js). Re-sanitizes on render as defense in
 // depth in case the cache was ever tampered with.
 
+// Theme palette, kept in sync with popup.js / the iOS app's AppTheme.
+const READER_THEMES = {
+  sunset:   { start: '#ff8a4c', end: '#ec407a' },
+  ocean:    { start: '#26c6da', end: '#1565c0' },
+  forest:   { start: '#9ccc65', end: '#2e7d32' },
+  dusk:     { start: '#ab47bc', end: '#3949ab' },
+  rose:     { start: '#f48fb1', end: '#c62828' },
+  midnight: { start: '#1a237e', end: '#0d47a1' },
+};
+
+// Apply the user's selected theme to the reader's accent CSS variables.
+async function applyReaderTheme() {
+  try {
+    const { appTheme = 'ocean' } = await chrome.storage.local.get('appTheme');
+    const t = READER_THEMES[appTheme] || READER_THEMES.ocean;
+    document.documentElement.style.setProperty('--theme-start', t.start);
+    document.documentElement.style.setProperty('--theme-end', t.end);
+  } catch {
+    // No stored theme (or no chrome.storage) — the CSS defaults stand.
+  }
+}
+
 (async () => {
+  await applyReaderTheme();
+
   const statusEl = document.getElementById('status');
   const params = new URLSearchParams(location.search);
   const url = params.get('url');

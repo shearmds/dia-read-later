@@ -295,16 +295,8 @@ function buildItemEl(item, { showFolder }) {
   urlEl.className = "item-url";
   try { urlEl.textContent = new URL(item.url).hostname; } catch { urlEl.textContent = item.url; }
   meta.append(urlEl);
-  const category = categoryFor(item.url);
-  if (category) {
-    const tag = document.createElement("span");
-    tag.className = "item-category";
-    tag.textContent = category;
-    const color = CATEGORY_COLORS[category];
-    tag.style.color = color;
-    tag.style.backgroundColor = color + "26"; // ~15% opacity
-    meta.append(tag);
-  }
+  // The older URL-derived category tag was removed (redundant with the AI
+  // folder tag below); `categoryFor` is kept for now in case it's reused.
   // Only shown in flat view — in grouped view the folder is already the
   // section header, so repeating it on every item would be redundant.
   if (showFolder && item.folder) {
