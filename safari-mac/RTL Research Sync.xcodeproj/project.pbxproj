@@ -28,6 +28,9 @@
 		79D457E92FFC0AB400C1F204 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = 79D457DE2FFC0AB400C1F204 /* popup.css */; };
 		79D457EA2FFC0AB400C1F204 /* reader.js in Resources */ = {isa = PBXBuildFile; fileRef = 79D457DF2FFC0AB400C1F204 /* reader.js */; };
 		79D457EB2FFC0AB400C1F204 /* vendor in Resources */ = {isa = PBXBuildFile; fileRef = 79D457E02FFC0AB400C1F204 /* vendor */; };
+		37A55D2EE8FEE8E3472250E7 /* welcome.html in Resources */ = {isa = PBXBuildFile; fileRef = CF98D17BE0BD13D945E7DBE5 /* welcome.html */; };
+		2C7479A03732F99D43EA27AD /* welcome.js in Resources */ = {isa = PBXBuildFile; fileRef = 8A4C6874EEA1BB59623C9F29 /* welcome.js */; };
+		32CE851D47AACFF4D799FB7E /* welcome.css in Resources */ = {isa = PBXBuildFile; fileRef = E5061E4486A37AF5337E819E /* welcome.css */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,6 +82,9 @@
 		79D457DE2FFC0AB400C1F204 /* popup.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = popup.css; path = Resources/popup.css; sourceTree = "<group>"; };
 		79D457DF2FFC0AB400C1F204 /* reader.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = reader.js; path = Resources/reader.js; sourceTree = "<group>"; };
 		79D457E02FFC0AB400C1F204 /* vendor */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vendor; path = Resources/vendor; sourceTree = "<group>"; };
+		CF98D17BE0BD13D945E7DBE5 /* welcome.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = welcome.html; path = Resources/welcome.html; sourceTree = "<group>"; };
+		8A4C6874EEA1BB59623C9F29 /* welcome.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = welcome.js; path = Resources/welcome.js; sourceTree = "<group>"; };
+		E5061E4486A37AF5337E819E /* welcome.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = welcome.css; path = Resources/welcome.css; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -165,6 +171,9 @@
 				79D457DE2FFC0AB400C1F204 /* popup.css */,
 				79D457DF2FFC0AB400C1F204 /* reader.js */,
 				79D457E02FFC0AB400C1F204 /* vendor */,
+				CF98D17BE0BD13D945E7DBE5 /* welcome.html */,
+				8A4C6874EEA1BB59623C9F29 /* welcome.js */,
+				E5061E4486A37AF5337E819E /* welcome.css */,
 			);
 			name = Resources;
 			path = "RTL Research Sync Extension";
@@ -276,6 +285,9 @@
 				79D457E32FFC0AB400C1F204 /* background.js in Resources */,
 				79D457E72FFC0AB400C1F204 /* icons in Resources */,
 				79D457E12FFC0AB400C1F204 /* popup.js in Resources */,
+				37A55D2EE8FEE8E3472250E7 /* welcome.html in Resources */,
+				2C7479A03732F99D43EA27AD /* welcome.js in Resources */,
+				32CE851D47AACFF4D799FB7E /* welcome.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

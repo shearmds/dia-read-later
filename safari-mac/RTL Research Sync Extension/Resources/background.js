@@ -15,7 +15,14 @@ async function getToken() {
     return generated;
 }
 
-chrome.runtime.onInstalled.addListener(setupAlarms);
+chrome.runtime.onInstalled.addListener((details) => {
+    setupAlarms();
+    // First install only — explains standalone use + the sync-key pairing
+    // step before anyone hits "wait, why isn't this the same list" confusion.
+    if (details.reason === 'install') {
+        chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });
+    }
+});
 chrome.runtime.onStartup.addListener(() => {
     setupAlarms();
     syncWithMenuBar();

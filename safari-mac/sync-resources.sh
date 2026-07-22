@@ -16,6 +16,7 @@ FILES=(
   popup.html popup.js popup.css
   offline.js
   reader.html reader.css reader.js
+  welcome.html welcome.js welcome.css
 )
 DIRS=(icons vendor)
 
