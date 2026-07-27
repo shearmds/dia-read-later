@@ -25,6 +25,21 @@ body {
   body { width: 100%; }
 }
 
+/* Some surfaces present the popup in a real resizable window (Dia's detached
+   extension window, or popup.html opened in a tab) instead of a shrink-to-fit
+   bubble. There the fixed 440x600 box leaves dead canvas to the right and
+   overflows the window vertically, so #list never gets to be the scroller.
+   A Chromium popup bubble sizes its viewport to the 440px body and never
+   matches this query, so the bubble path is untouched. */
+@media (min-width: 480px) {
+  html { height: 100%; }
+  body {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+  }
+}
+
 #app { display: flex; flex-direction: column; height: 100%; }
 
 header {
