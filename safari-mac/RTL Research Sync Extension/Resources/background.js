@@ -81,6 +81,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
+// True when a title is missing or is just the bare hostname (e.g. "nytimes.com") --
+// the symptom of a save that happened before the page's real <title> was set.
+function titleLooksLikeHostname(title, url) {
+    if (!title || !title.trim()) return true;
+    let host;
+    try { host = new URL(url).hostname.toLowerCase(); } catch { return false; }
+    if (host.startsWith('www.')) host = host.slice(4);
+    return title.trim().toLowerCase() === host;
+}
+
+// Repairs a bad title using the headline Readability already found while
+// building the offline copy -- no extra fetch, since that extraction already
+// runs for every save.
+async function repairTitleIfNeeded(url, betterTitle) {
+    if (!betterTitle) return;
+    const { readLater = [] } = await chrome.storage.local.get('readLater');
+    const item = readLater.find((i) => i.url === url);
+    if (!item || !titleLooksLikeHostname(item.title, url)) return;
+    item.title = betterTitle;
+    item.updatedAt = Date.now();
+    await chrome.storage.local.set({ readLater });
+    syncWithMenuBar();
+}
+
 // Sets an item's offline status, bumps updatedAt so the change wins the merge,
 // and syncs so every device (and the popup, on its next render) learns it.
 async function setOfflineStatus(url, offline) {
@@ -144,6 +168,8 @@ async function makeOffline(url) {
     try {
         const res = await offlineExtract(tab.id);
         if (created) { try { await chrome.tabs.remove(tab.id); } catch {} }
+
+        if (res.ok) await repairTitleIfNeeded(url, res.title);
 
         if (!res.ok || (res.length || 0) < OFFLINE_MIN_LENGTH) {
             await setOfflineStatus(url, 'unavailable');
