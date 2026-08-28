@@ -63,7 +63,7 @@ async function applyReaderTheme() {
     return;
   }
 
-  document.title = (rec.title || 'Reader') + ' — Research Sync';
+  document.title = (rec.title || 'Reader') + ' — Clipfile';
   document.getElementById('title').textContent = rec.title || '';
   let host = '';
   try { host = new URL(url).hostname; } catch { host = ''; }

@@ -1,7 +1,7 @@
-# Research Sync — Safari (macOS)
+# Clipfile — Safari (macOS)
 
 A Safari-on-Mac wrapper around the **same** web extension that ships to
-Chrome/Dia/Arc/Brave/Edge. This lets Safari-on-Mac users use Research Sync without
+Chrome/Dia/Arc/Brave/Edge. This lets Safari-on-Mac users use Clipfile without
 switching browsers. It is **additive** — the Chrome extension remains the
 primary desktop path.
 
@@ -49,7 +49,7 @@ the app is installed to /Applications.
 ## Publishing
 Build and upload with **Xcode 26**: the project was downgraded from the Xcode 27
 beta format (`objectVersion` 110 → 77) so it opens and archives on the released
-toolchain. (The product is branded **Research Sync**; the on-disk project/target
+toolchain. (The product is branded **Clipfile**; the on-disk project/target
 files are still named `RTL Research Sync` — internal only, not user-visible.)
 Alternative to the App Store: **Developer ID signing + notarization** for direct
 distribution.

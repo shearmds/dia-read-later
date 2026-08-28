@@ -1,6 +1,6 @@
-# Read This Later — Browser Extension
+# Clipfile — Browser Extension
 
-Save the current page to your **Read This Later** list, right from your browser
+Save the current page to your **Clipfile** list, right from your browser
 toolbar, and browse your unread saved pages. Works in Dia, Chrome, Arc, Brave,
 Edge, and other Chromium browsers.
 

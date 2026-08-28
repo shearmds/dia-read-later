@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Research Sync",
-  "version": "2.5",
+  "name": "Clipfile",
+  "version": "2.6",
   "description": "Save pages to read later, right from your toolbar.",
   "permissions": ["activeTab", "storage", "tabs", "alarms", "favicon", "scripting"],
   "host_permissions": ["https://readlater-sync.shearm.workers.dev/*", "<all_urls>"],
@@ -17,12 +17,12 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "Save to Research Sync"
+    "default_title": "Save to Clipfile"
   },
   "commands": {
     "save-page": {
       "suggested_key": { "default": "Alt+S" },
-      "description": "Save current page to Research Sync"
+      "description": "Save current page to Clipfile"
     }
   },
   "background": {

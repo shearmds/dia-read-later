@@ -1,12 +1,14 @@
-# dia-read-later (Research Sync browser extension)
+# dia-read-later (Clipfile browser extension)
 
-Chromium MV3 extension — save the current tab to the Research Sync list, browse/search/filter
-saved pages, read them offline. Ships in Dia, Chrome, Arc, Brave, Edge. Currently **v2.5**.
+Chromium MV3 extension — save the current tab to the Clipfile list, browse/search/filter
+saved pages, read them offline. Ships in Dia, Chrome, Arc, Brave, Edge. Currently **v2.6**.
 Repo: `github.com/shearmds/dia-read-later`. `README.md` covers features and the sync key.
 
 **Naming is genuinely inconsistent here and it isn't a mistake to fix.** The repo is
-`dia-read-later`, the README says "Read This Later", `manifest.json` says **Research Sync**, and
-the Safari wrapper is "RTL Research Sync". User-facing is Research Sync; the rest is history.
+`dia-read-later`, the Safari wrapper's Xcode project is "RTL Research Sync", and `manifest.json`
+says **Clipfile**. User-facing is Clipfile (renamed 2026-08-28, was Research Sync); the on-disk
+and repo names are history and are load-bearing — the Chrome Web Store item ID and the Safari
+project paths are bound to them.
 Renaming the manifest changes what users see, so leave it alone unless that's the intent.
 
 ## Part of a four-repo family — check you're in the right one
@@ -19,7 +21,8 @@ Renaming the manifest changes what users see, so leave it alone unless that's th
 | **this repo** | the browser extension + its Safari wrapper |
 
 Not to be confused with `ReadThisLater` (a static marketing site), `readlater-privacy` (privacy
-policy page), or `rtl-safari` (not a repo).
+policy page), or `rtl-safari` (its own repo since 2026-08-28 — a separate Safari
+extension, not this repo's `safari-mac/` wrapper).
 
 ## Build and test
 
