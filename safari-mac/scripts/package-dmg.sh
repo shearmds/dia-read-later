@@ -8,7 +8,7 @@
 #   # Create a Developer ID Application certificate for this machine:
 #   #   Xcode -> Settings -> Accounts -> Manage Certificates -> + -> Developer ID Application
 #   # Store notary credentials in the keychain so notarytool can find them:
-#   xcrun notarytool store-credentials "ResearchSyncNotary" \
+#   xcrun notarytool store-credentials "ClipfileNotary" \
 #       --apple-id "shearm@mac.com" \
 #       --team-id "95E9CZ9HW6" \
 #       --password "<app-specific-password>"   # from appleid.apple.com
@@ -26,9 +26,14 @@ set -euo pipefail
 # ---- Config -----------------------------------------------------------------
 APP_NAME="Clipfile"
 TEAM_ID="95E9CZ9HW6"
-NOTARY_PROFILE="${NOTARY_PROFILE:-ResearchSyncNotary}"   # existing keychain item,
-                                                        # not the product name — renaming it
-                                                        # would need store-credentials re-run
+NOTARY_PROFILE="${NOTARY_PROFILE:-ClipfileNotary}"   # keychain profile name. This one
+                                                   # is NOT stored yet — either create it (see
+                                                   # Prerequisites) or reuse an existing profile:
+                                                   #   NOTARY_PROFILE=BookTrackerNotary ./scripts/package-dmg.sh ...
+                                                   # BookTrackerNotary, StoryDeskNotary and
+                                                   # WardrobeStylistNotary were stored as of
+                                                   # 2026-08-28; same Apple ID and team, so any
+                                                   # of them works.
 # -----------------------------------------------------------------------------
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
