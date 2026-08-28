@@ -484,7 +484,7 @@
 					SafariServices,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mdshear.ReadLater.safari-mac.Extension";
-				PRODUCT_NAME = "Research Sync Extension";
+				PRODUCT_NAME = "Clipfile Extension";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -519,7 +519,7 @@
 					SafariServices,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mdshear.ReadLater.safari-mac.Extension";
-				PRODUCT_NAME = "Research Sync Extension";
+				PRODUCT_NAME = "Clipfile Extension";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -562,7 +562,7 @@
 					WebKit,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mdshear.ReadLater.safari-mac";
-				PRODUCT_NAME = "Research Sync";
+				PRODUCT_NAME = Clipfile;
 				REGISTER_APP_GROUPS = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -606,7 +606,7 @@
 					WebKit,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mdshear.ReadLater.safari-mac";
-				PRODUCT_NAME = "Research Sync";
+				PRODUCT_NAME = Clipfile;
 				REGISTER_APP_GROUPS = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;

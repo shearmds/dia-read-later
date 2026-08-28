@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# package-dmg.sh — turn an exported, notarized "Research Sync.app" into a
+# package-dmg.sh — turn an exported, notarized "Clipfile.app" into a
 # signed + notarized + stapled .dmg with a drag-to-Applications layout.
 #
 # Prerequisites (one-time, per machine):
@@ -16,7 +16,7 @@
 #   #  NOTARY_PROFILE=BookTrackerNotary, since it's the same Apple ID + team.)
 #
 # Usage:
-#   ./scripts/package-dmg.sh "/path/to/exported/Research Sync.app"
+#   ./scripts/package-dmg.sh "/path/to/exported/Clipfile.app"
 #
 # The .app you pass MUST already be Developer-ID signed (i.e. the output of
 # Xcode's Organizer -> Distribute App -> Direct Distribution export).
@@ -24,9 +24,11 @@
 set -euo pipefail
 
 # ---- Config -----------------------------------------------------------------
-APP_NAME="Research Sync"
+APP_NAME="Clipfile"
 TEAM_ID="95E9CZ9HW6"
-NOTARY_PROFILE="${NOTARY_PROFILE:-ResearchSyncNotary}"   # keychain profile name
+NOTARY_PROFILE="${NOTARY_PROFILE:-ResearchSyncNotary}"   # existing keychain item,
+                                                        # not the product name — renaming it
+                                                        # would need store-credentials re-run
 # -----------------------------------------------------------------------------
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
