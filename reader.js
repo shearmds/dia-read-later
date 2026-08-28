@@ -5,12 +5,14 @@
 
 // Theme palette, kept in sync with popup.js / the iOS app's AppTheme.
 const READER_THEMES = {
-  sunset:   { start: '#ff8a4c', end: '#ec407a' },
-  ocean:    { start: '#26c6da', end: '#1565c0' },
-  forest:   { start: '#9ccc65', end: '#2e7d32' },
-  dusk:     { start: '#ab47bc', end: '#3949ab' },
-  rose:     { start: '#f48fb1', end: '#c62828' },
-  midnight: { start: '#1a237e', end: '#0d47a1' },
+  sunset:    { start: '#ff8a4c', end: '#ec407a' },
+  ocean:     { start: '#26c6da', end: '#1565c0' },
+  forest:    { start: '#9ccc65', end: '#2e7d32' },
+  dusk:      { start: '#ab47bc', end: '#3949ab' },
+  rose:      { start: '#f48fb1', end: '#c62828' },
+  midnight:  { start: '#1a237e', end: '#0d47a1' },
+  // Parchment — the muted tan/sepia that matches the ink-on-cream app icons.
+  parchment: { start: '#b49a72', end: '#6b5741' },
 };
 
 // Apply the user's selected theme to the reader's accent CSS variables.
