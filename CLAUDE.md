@@ -1,7 +1,7 @@
 # dia-read-later (Research Sync browser extension)
 
 Chromium MV3 extension — save the current tab to the Research Sync list, browse/search/filter
-saved pages, read them offline. Ships in Dia, Chrome, Arc, Brave, Edge. Currently **v2.4**.
+saved pages, read them offline. Ships in Dia, Chrome, Arc, Brave, Edge. Currently **v2.5**.
 Repo: `github.com/shearmds/dia-read-later`. `README.md` covers features and the sync key.
 
 **Naming is genuinely inconsistent here and it isn't a mistake to fix.** The repo is
