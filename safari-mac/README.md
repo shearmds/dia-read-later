@@ -47,12 +47,18 @@ the app is installed to /Applications.
   `chrome.scripting.executeScript` offline capture, and `chrome.storage` persistence.
 
 ## Publishing
-Built with the **Xcode 27 beta**, which is the only toolchain on this machine — the
-Xcode 26 Mac was abandoned on 2026-08-28. The project sits at `objectVersion` 77
-(downgraded from the beta's 110 back when Xcode 26 had to open it); that is now just
-harmless history, and Xcode 27 reads it fine. Leave it at 77 unless something needs
-the newer format. App Store uploads wait for the Xcode 27 GM, expected mid-September
-2026. (The product is branded **Clipfile**; the on-disk project/target files are
-still named `RTL Research Sync` — internal only, not user-visible.)
+Built with **Xcode 27.0 released** (`27A266a`), the only toolchain on this machine since
+2026-09-03 — the Xcode 26 Mac was abandoned on 2026-08-28. The project sits at
+`objectVersion` 77 (downgraded from 110 back when Xcode 26 had to open it); that is now
+just harmless history, and Xcode 27 reads it fine. Leave it at 77 unless something needs
+the newer format.
+
+**Corrected 2026-09-17:** this section used to say "App Store uploads wait for the Xcode 27
+GM, expected mid-September 2026". That is dead — the GM shipped, and it is what is
+installed. Tell a beta from a release by the build number: Apple's betas carry a `5` after
+the letter (`27A5xxx`), and `27A266a` does not. There is nothing to wait for.
+
+(The product is branded **Clipfile**; the on-disk project/target files are still named
+`RTL Research Sync` — internal only, not user-visible.)
 Alternative to the App Store: **Developer ID signing + notarization** for direct
 distribution.

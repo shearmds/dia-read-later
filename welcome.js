@@ -1,20 +1,31 @@
 // Mirrors the THEMES table in popup.js so the welcome page picks up whatever
-// theme (if any) is already stored — falls back to the default (ocean).
+// theme (if any) is already stored — falls back to the default (parchment).
+// wash/washDark are PRECOMPUTED RGB triples of the accent, brightened for use
+// as a background fill. They're precomputed because the Swift/iOS version
+// derives them with HSB maths (saturation x1.25, brightness lifted to 0.92 in
+// light only) that CSS cannot do — do not try to re-derive them in JS.
 const THEMES = [
-  { id: 'sunset',    start: '#ff8a4c', end: '#ec407a' },
-  { id: 'ocean',     start: '#26c6da', end: '#1565c0' },
-  { id: 'forest',    start: '#9ccc65', end: '#2e7d32' },
-  { id: 'dusk',      start: '#ab47bc', end: '#3949ab' },
-  { id: 'rose',      start: '#f48fb1', end: '#c62828' },
-  { id: 'midnight',  start: '#1a237e', end: '#0d47a1' },
-  // Parchment — the muted tan/sepia that matches the ink-on-cream app icons.
-  { id: 'parchment', start: '#b49a72', end: '#6b5741' },
+  { id: 'aurora',    accent: '#4F4A9E', accentDark: '#A8A4E8', wash: '88, 79, 235',    washDark: '152, 147, 232' },
+  { id: 'sunset',    accent: '#A8471F', accentDark: '#E39468', wash: '235, 68, 0',     washDark: '227, 128, 73' },
+  { id: 'ocean',     accent: '#1F5F6B', accentDark: '#86C2CE', wash: '26, 202, 235',   washDark: '116, 191, 206' },
+  { id: 'forest',    accent: '#3D6046', accentDark: '#92BA9C', wash: '128, 235, 155',  washDark: '136, 186, 149' },
+  { id: 'dusk',      accent: '#6B3A6E', accentDark: '#CFA0D2', wash: '227, 96, 235',   washDark: '206, 147, 210' },
+  { id: 'rose',      accent: '#8C2A28', accentDark: '#DA8177', wash: '235, 29, 25',    washDark: '218, 107, 94' },
+  { id: 'midnight',  accent: '#23374F', accentDark: '#96AEC6', wash: '71, 146, 235',   washDark: '138, 168, 198' },
+  { id: 'parchment', accent: '#6B5741', accentDark: '#C9B291', wash: '235, 180, 119',  washDark: '201, 172, 131' },
 ];
 
 function applyTheme(id) {
   const t = THEMES.find(t => t.id === id) ?? THEMES[0];
-  document.documentElement.style.setProperty('--theme-start', t.start);
-  document.documentElement.style.setProperty('--theme-end', t.end);
+  const el = document.documentElement.style;
+  el.setProperty('--accent-light', t.accent);
+  el.setProperty('--accent-dark',  t.accentDark);
+  el.setProperty('--wash-light',   t.wash);
+  el.setProperty('--wash-dark',    t.washDark);
+}
+
+function applyGround(ground) {
+  document.documentElement.dataset.ground = ground;
 }
 
 // Same generation scheme as background.js's getToken(), so opening this page
@@ -30,8 +41,10 @@ async function getOrCreateToken() {
 }
 
 (async () => {
-  const { appTheme = 'ocean' } = await chrome.storage.local.get('appTheme');
+  const { appTheme = 'parchment', ground = 'paper' } =
+    await chrome.storage.local.get(['appTheme', 'ground']);
   applyTheme(appTheme);
+  applyGround(ground);
 
   const token = await getOrCreateToken();
   const keyEl = document.getElementById('sync-key');

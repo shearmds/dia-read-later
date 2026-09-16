@@ -1,6 +1,74 @@
+/* ---------------------------------------------------------------------------
+   Clipfile surface tokens — a hand port of Surfaces.swift, which this
+   product's iOS app and its four sibling apps (Notch, Deets, Prexy, Jottle)
+   all carry. Spec: ~/Developer/addressbook/docs/PLAN-ground-and-glass.md
+
+   The ground is a 2x2 of (paper | bright) x (light | dark). Light/dark is left
+   to prefers-color-scheme; the ground is an attribute JS puts on :root,
+   because CSS has no media query for "which cream".
+
+   --accent-light/-dark and --wash-light/-dark are set by JS from the chosen
+   accent. Both halves are always set, so the media queries below can pick
+   without JS watching matchMedia.
+   --------------------------------------------------------------------------- */
 :root {
-  --theme-start: #26c6da;
-  --theme-end: #1565c0;
+  color-scheme: light dark;
+
+  --accent-light: #6B5741;
+  --accent-dark:  #C9B291;
+  --wash-light:   235, 180, 119;
+  --wash-dark:    201, 172, 131;
+
+  --accent:    var(--accent-light);
+  --wash:      var(--wash-light);
+  --ground:    #F7F3EB;
+  --ink:       #181916;
+  --ink-2:     rgba(24, 25, 22, 0.62);
+  --hairline:  rgba(41, 42, 37, 0.16);
+  --selection: #E8EDE4;
+  --hover:     #EDF0E9;
+
+  /* Information, not theme. A colour is either the theme or it is
+     information; these two follow neither picker. */
+  --ok:  #34c759;
+  --bad: #ff3b30;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent:    var(--accent-dark);
+    --wash:      var(--wash-dark);
+    --ground:    #181916;
+    --ink:       #F3EFE5;
+    --ink-2:     rgba(243, 239, 229, 0.64);
+    --hairline:  rgba(243, 239, 229, 0.18);
+    --selection: #252B23;
+    --hover:     #212620;
+  }
+}
+
+/* Bright. On white there is no warmth in the ground to carry a grey
+   selection, so selection and hover take a wash of the accent instead —
+   hover at roughly half selection's alpha, which is the relationship the
+   paper values already hold. */
+:root[data-ground="bright"] {
+  --ground:    #FFFFFF;
+  --ink:       #1A1A1C;
+  --ink-2:     rgba(26, 26, 28, 0.62);
+  --hairline:  rgba(42, 42, 44, 0.16);
+  --selection: rgba(var(--wash), 0.16);
+  --hover:     rgba(var(--wash), 0.07);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-ground="bright"] {
+    --ground:    #1C1C1E;
+    --ink:       #F2F2F4;
+    --ink-2:     rgba(242, 242, 244, 0.64);
+    --hairline:  rgba(242, 242, 244, 0.18);
+    --selection: rgba(var(--wash), 0.30);
+    --hover:     rgba(var(--wash), 0.16);
+  }
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -8,10 +76,8 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 15px;
-  /* Whisper of the selected theme behind the content (matches the app). */
-  background: linear-gradient(180deg, #ffffff 0%,
-              color-mix(in srgb, var(--theme-start) 7%, #ffffff) 100%);
-  color: #1a1a1a;
+  background: var(--ground);
+  color: var(--ink);
   width: 440px;
   min-height: 200px;
   max-height: 600px;
@@ -42,25 +108,20 @@ body {
 
 #app { display: flex; flex-direction: column; height: 100%; }
 
+/* The header used to be a white card framed by a themed gradient border; it
+   now sits directly on the ground, closed off by a hairline like any other
+   section boundary. */
 header {
-  margin: 10px 10px 4px;
   padding: 12px 14px;
-  border-radius: 16px;
-  color: #1a1a1a;
-  /* White fill framed by a themed gradient border — the same "outlined header
-     card" the iOS app uses, rather than a full gradient banner. */
-  border: 1.5px solid transparent;
-  background:
-    linear-gradient(#fff, #fff) padding-box,
-    linear-gradient(135deg, var(--theme-start), var(--theme-end)) border-box;
-  box-shadow: 0 3px 8px color-mix(in srgb, var(--theme-start) 18%, transparent);
+  border-bottom: 1px solid var(--hairline);
+  color: var(--ink);
 }
 
 h1 {
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 10px;
-  color: #1a1a1a;
+  color: var(--ink);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -72,20 +133,22 @@ h1 {
 #search {
   width: 100%;
   padding: 7px 26px 7px 10px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--hairline);
   border-radius: 10px;
   font-size: 13px;
-  background: rgba(0, 0, 0, 0.05);
-  color: #1a1a1a;
+  background: var(--hover);
+  color: var(--ink);
   outline: none;
 }
-#search::placeholder { color: #8e8e93; }
+#search::placeholder { color: var(--ink-2); }
 #search:focus {
-  border-color: var(--theme-end);
-  background: #fff;
-  color: #1a1a1a;
+  border-color: var(--accent);
+  background: var(--ground);
+  color: var(--ink);
 }
-#search:focus::placeholder { color: #b0b0b5; }
+/* Disabled-glyph style: ink-2 reduced further, via color-mix rather than
+   opacity so it never fights an element-level opacity elsewhere. */
+#search:focus::placeholder { color: color-mix(in srgb, var(--ink-2) 50%, transparent); }
 
 #search-clear {
   position: absolute;
@@ -94,7 +157,7 @@ h1 {
   height: 20px;
   border: none;
   background: none;
-  color: #8e8e93;
+  color: var(--ink-2);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
@@ -104,34 +167,37 @@ h1 {
   justify-content: center;
   opacity: 0.85;
 }
-#search-clear:hover { opacity: 1; background: rgba(0, 0, 0, 0.08); }
+#search-clear:hover { opacity: 1; background: var(--hover); }
 #search-wrap.has-value #search-clear { display: flex; }
 
 #search-wrap:focus-within #search-clear {
-  color: #8e8e93;
+  color: var(--ink-2);
 }
 #search-wrap:focus-within #search-clear:hover {
-  color: #1a1a1a;
-  background: rgba(0, 0, 0, 0.08);
+  color: var(--ink);
+  background: var(--hover);
 }
 
 #save-btn {
   padding: 7px 14px;
-  background: linear-gradient(135deg, var(--theme-start), var(--theme-end));
-  color: #fff;
+  background: var(--accent);
+  /* Ground, not white — it's the opposite-polarity surface colour, which is
+     what keeps this legible against --accent in both light and dark (accent
+     flips dark/light between modes, ground flips with it the other way). */
+  color: var(--ground);
   border: none;
   border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 0 2px 6px color-mix(in srgb, var(--theme-end) 30%, transparent);
 }
 #save-btn:hover { filter: brightness(1.06); }
 #save-btn.saved {
-  background: #34c759;
+  background: var(--ok);
+  /* White text on a fixed status colour, not a themed surface — --ok never
+     changes with mode, so a literal white stays correct in both. */
   color: #fff;
-  box-shadow: 0 2px 6px rgba(52, 199, 89, 0.3);
 }
 
 #filter-bar {
@@ -143,14 +209,14 @@ h1 {
 
 .filter {
   padding: 4px 12px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--hairline);
   border-radius: 20px;
-  background: #fff;
+  background: var(--ground);
   font-size: 12px;
   cursor: pointer;
-  color: #555;
+  color: var(--ink-2);
 }
-.filter.active { background: var(--theme-end); color: #fff; border-color: var(--theme-end); }
+.filter.active { background: var(--accent); color: var(--ground); border-color: var(--accent); }
 
 .filter-toggle { margin-left: auto; }
 /* Folder grouping toggle: an icon-only pill (matches the iOS app's folder glyph). */
@@ -165,25 +231,27 @@ h1 {
    "on" (so it resumes once the search clears) but reads as paused, not off. */
 .filter-toggle.active.suspended {
   background: transparent;
-  color: var(--theme-end);
+  color: var(--accent);
   opacity: 0.6;
 }
 
+/* Label register: matches .settings-section-title and the folder/category
+   tags below — 10px/600, uppercase, 0.06em tracking. */
 .group-header {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 10px 16px 8px;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #8e8e93;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
   cursor: pointer;
   user-select: none;
 }
 .group-header:first-child { padding-top: 4px; }
-.group-header:hover { color: #48484c; }
+.group-header:hover { color: var(--ink); }
 
 .group-header-chevron {
   font-size: 10px;
@@ -195,14 +263,14 @@ h1 {
 .group-header-count {
   margin-left: auto;
   font-weight: 600;
-  color: #c7c7cc;
+  color: color-mix(in srgb, var(--ink-2) 50%, transparent);
 }
 
 .group-header-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #007aff;
+  background: var(--accent);
   flex-shrink: 0;
 }
 
@@ -216,7 +284,7 @@ h1 {
   background: transparent;
 }
 
-.theme-swatch {
+#theme-bar .theme-swatch {
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -224,46 +292,39 @@ h1 {
   cursor: pointer;
   padding: 0;
   transition: transform 0.12s;
+  /* --sw-light/--sw-dark are set per button by buildThemeBar(). A swatch shows
+     the half of the accent pair that the app would actually draw right now,
+     rather than a blend of both. */
+  background: var(--sw-light);
 }
-.theme-swatch:hover { transform: scale(1.15); }
-.theme-swatch.active { border-color: #fff; box-shadow: 0 0 0 1.5px rgba(0,0,0,0.25); }
+@media (prefers-color-scheme: dark) {
+  #theme-bar .theme-swatch { background: var(--sw-dark); }
+}
+#theme-bar .theme-swatch:hover { transform: scale(1.15); }
+/* Ground-coloured ring, not a shadow: against the page it reads as a halo
+   cut into the swatch, which is enough to signal "selected". */
+#theme-bar .theme-swatch.active { border-color: var(--ground); }
 
 #list {
   flex: 1;
   overflow-y: auto;
   list-style: none;
-  padding: 4px 0 10px;
+  padding: 4px 14px 10px;
 }
 
-/* Each saved page is a white card with a theme-gradient accent spine on the
-   left (muted grey once read) — the signature ReadLater/QuickNote row. */
+/* Rows, not cards: no fill, no border, no radius, no shadow, no gradient
+   spine — just a hairline closing each one off, like every other section
+   boundary in this file. */
 .item {
-  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin: 8px 12px;
-  padding: 11px 14px 11px 16px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline);
   cursor: pointer;
-  transition: box-shadow 0.15s;
+  transition: background 0.15s;
 }
-.item::before {
-  content: "";
-  position: absolute;
-  left: 6px;
-  top: 10px;
-  bottom: 10px;
-  width: 4px;
-  border-radius: 2px;
-  background: linear-gradient(135deg, var(--theme-start), var(--theme-end));
-}
-.item:hover { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
-.item.is-read { opacity: 0.7; background: #fbfbfd; }
-.item.is-read::before { background: rgba(0, 0, 0, 0.18); }
+.item:hover { background: var(--hover); }
 
 .item-favicon {
   width: 18px;
@@ -276,14 +337,15 @@ h1 {
 .item-body { flex: 1; min-width: 0; }
 
 .item-title {
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 17px;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #1a1a1a;
+  color: var(--ink);
 }
-.item.is-read .item-title { color: #8e8e93; }
+/* Read rows carry the dimming on the title colour, not the row itself. */
+.item.is-read .item-title { color: var(--ink-2); }
 
 .item-meta {
   display: flex;
@@ -294,17 +356,20 @@ h1 {
 }
 
 .item-url {
-  font-size: 12px;
-  color: #8e8e93;
+  font-size: 11px;
+  color: var(--ink-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
 }
 
+/* Label register (see .group-header above). */
 .item-category {
   font-size: 10px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   padding: 1px 6px;
   border-radius: 999px;
   flex-shrink: 0;
@@ -313,11 +378,13 @@ h1 {
 .item-folder {
   font-size: 10px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   padding: 1px 6px;
   border-radius: 999px;
   flex-shrink: 0;
-  color: var(--theme-end);
-  background: color-mix(in srgb, var(--theme-end) 15%, transparent);
+  color: var(--accent);
+  background: rgba(var(--wash), 0.15);
 }
 
 .item-sorting {
@@ -326,14 +393,14 @@ h1 {
   gap: 4px;
   font-size: 10px;
   font-weight: 600;
-  color: #8e8e93;
+  color: var(--ink-2);
   flex-shrink: 0;
 }
 .item-sorting-spinner {
   width: 8px;
   height: 8px;
-  border: 1.5px solid #d1d1d6;
-  border-top-color: #8e8e93;
+  border: 1.5px solid var(--hairline);
+  border-top-color: var(--ink-2);
   border-radius: 50%;
   animation: offline-spin 0.7s linear infinite;
   flex-shrink: 0;
@@ -350,30 +417,35 @@ h1 {
 .item:hover .item-actions { opacity: 1; }
 @media (hover: none) { .item-actions { opacity: 1; } }
 
+/* Row action: 11px/500. */
 .item-actions button {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 11px;
+  font-weight: 500;
   width: 30px;
   height: 30px;
   padding: 0;
   border-radius: 7px;
   line-height: 1;
-  color: #6c6c70;
+  color: var(--ink-2);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.item-actions button:hover { background: #e0e0e6; }
+.item-actions button:hover { background: var(--hover); }
 .item-actions button svg { width: 18px; height: 18px; display: block; }
 
 /* Offline button. The "read offline" (saved) and "unavailable" states are kept
    visible (not hover-gated) so availability reads at a glance — like the book
    icon in the iOS app. The "save for offline" download only shows on hover. */
-.offline-btn.offline-saved { color: var(--theme-end); opacity: 1; }
-.offline-btn.offline-requested { color: #8e8e93; opacity: 1; cursor: default; }
-.offline-btn.offline-unavailable { color: #c7c7cc; opacity: 1; }
+.offline-btn.offline-saved { color: var(--accent); opacity: 1; }
+.offline-btn.offline-requested { color: var(--ink-2); opacity: 1; cursor: default; }
+/* Disabled-glyph dimming has to live in the colour, not element opacity —
+   the rule below forces opacity:1 on this same class to keep it visible
+   without hover. */
+.offline-btn.offline-unavailable { color: color-mix(in srgb, var(--ink-2) 50%, transparent); opacity: 1; }
 .item-actions .offline-btn.offline-saved,
 .item-actions .offline-btn.offline-requested,
 .item-actions .offline-btn.offline-unavailable { opacity: 1; }
@@ -381,8 +453,8 @@ h1 {
 .offline-spinner {
   width: 15px;
   height: 15px;
-  border: 2px solid #d1d1d6;
-  border-top-color: #8e8e93;
+  border: 2px solid var(--hairline);
+  border-top-color: var(--ink-2);
   border-radius: 50%;
   animation: offline-spin 0.7s linear infinite;
 }
@@ -394,14 +466,14 @@ h1 {
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  color: #8e8e93;
+  color: var(--ink-2);
   text-align: center;
   gap: 8px;
 }
 #empty.visible { display: flex; }
 #empty .hint { font-size: 12px; }
 kbd {
-  background: #e5e5ea;
+  background: var(--hover);
   padding: 1px 5px;
   border-radius: 4px;
   font-family: inherit;
@@ -418,71 +490,95 @@ kbd {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: #1a1a1a;
+  color: var(--ink);
   cursor: pointer;
 }
-.icon-btn:hover { background: rgba(0, 0, 0, 0.06); }
+.icon-btn:hover { background: var(--hover); }
 
 /* Collapsible settings panel */
 #settings-panel {
   padding: 12px 14px;
-  border-top: 1px solid #e5e5ea;
-  background: #fff;
+  border-top: 1px solid var(--hairline);
+  background: var(--ground);
   flex-direction: column;
   gap: 8px;
   display: none;
 }
 #settings-panel.open { display: flex; }
-#settings-panel .hint { font-size: 11px; color: #8e8e93; line-height: 1.4; margin: 0; }
+#settings-panel .hint { font-size: 11px; color: var(--ink-2); line-height: 1.4; margin: 0; }
 
+/* Label register (see .group-header above) — this and .item-folder are the
+   two examples the token spec names directly. */
 .settings-section-title {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #8e8e93;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
 }
 
 .settings-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 
-.settings-divider { height: 1px; background: #e5e5ea; margin: 2px 0; }
+.settings-divider { height: 1px; background: var(--hairline); margin: 2px 0; }
 
 #settings-panel button, #import-label {
   padding: 4px 10px;
-  border: 1px solid #d1d1d6;
+  border: 1px solid var(--hairline);
   border-radius: 7px;
-  background: #f2f2f7;
+  background: var(--hover);
   font-size: 12px;
-  color: #333;
+  color: var(--ink);
   cursor: pointer;
   white-space: nowrap;
 }
-#settings-panel button:hover, #import-label:hover { background: #e5e5ea; }
+#settings-panel button:hover, #import-label:hover { background: var(--hover); }
 
 #import-input { display: none; }
 
-#import-msg, #synckey-msg { font-size: 11px; color: #34c759; }
+#import-msg, #synckey-msg { font-size: 11px; color: var(--ok); }
 #import-msg:empty, #synckey-msg:empty { display: none; }
 
 #synckey-input {
   padding: 6px 10px;
-  border: 1px solid #d1d1d6;
+  border: 1px solid var(--hairline);
   border-radius: 8px;
   font-size: 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   outline: none;
 }
-#synckey-input:focus { border-color: var(--theme-end); }
+#synckey-input:focus { border-color: var(--accent); }
 
 .synckey-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 #settings-panel .settings-done { align-self: flex-end; margin-top: 2px; }
 
+/* Ground picker (Paper/Bright) — a two-up segmented control styled like the
+   other settings controls: hairline border, hover wash, and an active option
+   taking the selection fill, the same signal .theme-swatch.active gives its
+   own row. */
+#ground-bar {
+  display: inline-flex;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  overflow: hidden;
+}
+#ground-bar .ground-option {
+  padding: 4px 12px;
+  border: none;
+  background: var(--hover);
+  font-size: 12px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+#ground-bar .ground-option + .ground-option { border-left: 1px solid var(--hairline); }
+#ground-bar .ground-option:hover { background: var(--selection); }
+#ground-bar .ground-option.active { background: var(--selection); color: var(--ink); font-weight: 600; }
+
 /* Notes panel (reuses the settings panel's collapsible/look-and-feel) */
 #notes-panel {
   padding: 12px 14px;
-  border-top: 1px solid #e5e5ea;
-  background: #fff;
+  border-top: 1px solid var(--hairline);
+  background: var(--ground);
   flex-direction: column;
   gap: 8px;
   display: none;
@@ -500,7 +596,7 @@ kbd {
   border: none;
   padding: 0;
   cursor: pointer;
-  color: var(--theme-end);
+  color: var(--accent);
   text-align: left;
 }
 .notes-open-link:hover { text-decoration: underline; }
@@ -515,29 +611,29 @@ kbd {
   width: 100%;
   min-height: 90px;
   padding: 8px 10px;
-  border: 1px solid #d1d1d6;
+  border: 1px solid var(--hairline);
   border-radius: 8px;
   font-size: 13px;
   font-family: inherit;
   resize: vertical;
   outline: none;
 }
-#notes-textarea:focus { border-color: var(--theme-end); }
+#notes-textarea:focus { border-color: var(--accent); }
 
 .notes-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .notes-actions button {
   padding: 4px 10px;
-  border: 1px solid #d1d1d6;
+  border: 1px solid var(--hairline);
   border-radius: 7px;
-  background: #f2f2f7;
+  background: var(--hover);
   font-size: 12px;
-  color: #333;
+  color: var(--ink);
   cursor: pointer;
 }
-.notes-actions button:hover { background: #e5e5ea; }
+.notes-actions button:hover { background: var(--hover); }
 
 .item-note-indicator {
   font-size: 11px;
-  color: var(--theme-end);
+  color: var(--accent);
   flex-shrink: 0;
 }

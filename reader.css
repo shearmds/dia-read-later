@@ -1,40 +1,106 @@
+/* ---------------------------------------------------------------------------
+   Clipfile surface tokens — a hand port of Surfaces.swift, which this
+   product's iOS app and its four sibling apps (Notch, Deets, Prexy, Jottle)
+   all carry. Spec: ~/Developer/addressbook/docs/PLAN-ground-and-glass.md
+
+   The ground is a 2x2 of (paper | bright) x (light | dark). Light/dark is left
+   to prefers-color-scheme; the ground is an attribute JS puts on :root,
+   because CSS has no media query for "which cream".
+
+   --accent-light/-dark and --wash-light/-dark are set by JS from the chosen
+   accent. Both halves are always set, so the media queries below can pick
+   without JS watching matchMedia.
+   --------------------------------------------------------------------------- */
 :root {
-  /* Light-locked, matching the rest of the app family. */
-  color-scheme: light;
-  --theme-start: #26c6da;
-  --theme-end: #1565c0;
+  color-scheme: light dark;
+
+  --accent-light: #6B5741;
+  --accent-dark:  #C9B291;
+  --wash-light:   235, 180, 119;
+  --wash-dark:    201, 172, 131;
+
+  --accent:    var(--accent-light);
+  --wash:      var(--wash-light);
+  --ground:    #F7F3EB;
+  --ink:       #181916;
+  --ink-2:     rgba(24, 25, 22, 0.62);
+  --hairline:  rgba(41, 42, 37, 0.16);
+  --selection: #E8EDE4;
+  --hover:     #EDF0E9;
+
+  /* Information, not theme. A colour is either the theme or it is
+     information; these two follow neither picker. */
+  --ok:  #34c759;
+  --bad: #ff3b30;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent:    var(--accent-dark);
+    --wash:      var(--wash-dark);
+    --ground:    #181916;
+    --ink:       #F3EFE5;
+    --ink-2:     rgba(243, 239, 229, 0.64);
+    --hairline:  rgba(243, 239, 229, 0.18);
+    --selection: #252B23;
+    --hover:     #212620;
+  }
+}
+
+/* Bright. On white there is no warmth in the ground to carry a grey
+   selection, so selection and hover take a wash of the accent instead —
+   hover at roughly half selection's alpha, which is the relationship the
+   paper values already hold. */
+:root[data-ground="bright"] {
+  --ground:    #FFFFFF;
+  --ink:       #1A1A1C;
+  --ink-2:     rgba(26, 26, 28, 0.62);
+  --hairline:  rgba(42, 42, 44, 0.16);
+  --selection: rgba(var(--wash), 0.16);
+  --hover:     rgba(var(--wash), 0.07);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-ground="bright"] {
+    --ground:    #1C1C1E;
+    --ink:       #F2F2F4;
+    --ink-2:     rgba(242, 242, 244, 0.64);
+    --hairline:  rgba(242, 242, 244, 0.18);
+    --selection: rgba(var(--wash), 0.30);
+    --hover:     rgba(var(--wash), 0.16);
+  }
 }
 
 body {
   margin: 0;
-  /* A faint wash of the selected theme behind the reading page. */
-  background: color-mix(in srgb, var(--theme-start) 5%, #ffffff);
-  color: #1c1c1e;
+  background: var(--ground);
+  color: var(--ink);
+  /* Reading register: larger, looser type and a wider measure than the rest
+     of the family's UI uses — a deliberate exception to the popup/welcome
+     type scale, not an oversight. */
   font: 18px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* The article sits on a floating white page — the reader's take on the app's
-   card surfaces. */
+/* The article used to float on a separate white card over a tinted wash; both
+   are now the same --ground, so it just sits on the page like everything
+   else in this family — no fill, no border-radius, no shadow to draw. */
 #reader {
   max-width: 42rem;
   margin: 2rem auto 4rem;
   padding: 3rem 2.5rem 5rem;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  background: var(--ground);
 }
 
 #status {
-  color: #8e8e93;
+  color: var(--ink-2);
   text-align: center;
   margin-top: 4rem;
 }
 
 #head {
-  /* Themed gradient rule under the title (echoes the header outline elsewhere). */
-  border-width: 0 0 2px;
-  border-style: solid;
-  border-image: linear-gradient(90deg, var(--theme-start), var(--theme-end)) 1;
+  /* Was a themed gradient rule; now a plain hairline like every other section
+     boundary in the family. */
+  border-bottom: 1px solid var(--hairline);
   padding-bottom: 1.25rem;
   margin-bottom: 1.75rem;
 }
@@ -46,7 +112,7 @@ body {
 }
 
 #site {
-  color: #8e8e93;
+  color: var(--ink-2);
   font-size: 0.95rem;
 }
 
@@ -54,7 +120,7 @@ body {
   display: inline-block;
   margin-top: 0.5rem;
   font-size: 0.9rem;
-  color: var(--theme-end);
+  color: var(--accent);
   text-decoration: none;
 }
 #original:hover { text-decoration: underline; }
@@ -70,16 +136,16 @@ body {
 
 #content figcaption {
   font-size: 0.85rem;
-  color: #8e8e93;
+  color: var(--ink-2);
   text-align: center;
   margin-top: 0.4rem;
 }
 
-#content a { color: var(--theme-end); }
+#content a { color: var(--accent); }
 
 #content pre {
   overflow-x: auto;
-  background: #f2f2f7;
+  background: var(--hover);
   padding: 1rem;
   border-radius: 8px;
   font-size: 0.85rem;
@@ -88,16 +154,14 @@ body {
 #content blockquote {
   margin: 1.25rem 0;
   padding-left: 1rem;
-  border-left: 3px solid var(--theme-end);
-  color: #48484a;
+  border-left: 3px solid var(--accent);
+  color: var(--ink);
 }
 
 /* On phones the floating page gives way to an edge-to-edge sheet. */
 @media (max-width: 46rem) {
   #reader {
     margin: 0;
-    border-radius: 0;
-    box-shadow: none;
     padding: 2rem 1.25rem 4rem;
   }
 }
