@@ -636,6 +636,8 @@ function importData(file) {
 
 document.getElementById("shortcut-btn").addEventListener("click", () => {   
   chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
+});
+
 
 // Shows the shortcut that is actually bound right now, rather than the one the
 // manifest suggested.
@@ -662,8 +664,7 @@ async function renderShortcut() {
   } catch {
     el.textContent = "Unavailable";
   }
-} 
-});
+}
 
 document.getElementById("export-btn").addEventListener("click", exportData);
 document.getElementById("export-csv-btn").addEventListener("click", exportCSV); 
