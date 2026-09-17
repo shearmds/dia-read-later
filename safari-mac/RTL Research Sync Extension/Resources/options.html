@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clipfile Settings</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <div id="page">
+    <h1>Clipfile Settings</h1>
+
+    <section>
+      <div class="settings-section-title">Background</div>
+      <div id="ground-bar">
+        <button class="ground-option" data-ground="paper">Paper</button>
+        <button class="ground-option" data-ground="bright">Bright</button>
+      </div>
+    </section>
+
+    <div class="settings-divider"></div>
+
+    <section>
+      <div class="settings-section-title">Accent</div>
+      <div id="theme-bar"></div>
+    </section>
+
+    <div class="settings-divider"></div>
+
+    <section>
+      <div class="settings-section-title">Shortcut</div>
+      <div id="shortcut-row">
+        <span id="shortcut-value">…</span>
+        <button id="shortcut-btn">Change…</button>
+      </div>
+      <p class="hint">
+        Saves the current page without opening a popup. Chrome only lets
+        shortcuts be changed from its own extensions page, so the button opens
+        it there — an extension cannot set its own.
+      </p>
+    </section>
+
+    <div class="settings-divider"></div>
+
+    <section>
+      <div class="settings-section-title">Data</div>
+      <div class="settings-buttons">
+        <button id="export-btn">Export JSON</button>
+        <button id="export-csv-btn">Export CSV</button>
+        <label id="import-label">
+          Import JSON
+          <input id="import-input" type="file" accept=".json" />
+        </label>
+      </div>
+      <span id="import-msg"></span>
+    </section>
+
+    <div class="settings-divider"></div>
+
+    <section>
+      <div class="settings-section-title">Sync Key</div>
+      <p class="hint">
+        Your sync key links your devices. Paste the same key on each device to
+        share one list. Keep it private — anyone with it can read your saved pages.
+      </p>
+      <input id="synckey-input" type="text" placeholder="Sync key" autocomplete="off" spellcheck="false" />
+      <div class="synckey-actions">
+        <button id="synckey-copy">Copy</button>
+        <button id="synckey-save">Save key</button>
+        <button id="synckey-generate">Generate new</button>
+      </div>
+      <span id="synckey-msg"></span>
+    </section>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>

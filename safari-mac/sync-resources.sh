@@ -2,7 +2,7 @@
 # Sync the canonical web-extension source (repo root) into the Safari macOS
 # extension's Resources folder. The repo root is the single source of truth;
 # this copies it in so Xcode can bundle it. Re-run after editing any extension
-# file (manifest.json, popup.*, background.js, offline.js, reader.*, icons/, vendor/).
+# file (manifest.json, options.*, background.js, offline.js, welcome.*, icons/, vendor/).
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,9 +13,8 @@ RES="$HERE/RTL Research Sync Extension/Resources"
 FILES=(
   manifest.json
   background.js
-  popup.html popup.js popup.css
+  options.html options.js options.css
   offline.js
-  reader.html reader.css reader.js
   welcome.html welcome.js welcome.css
 )
 DIRS=(icons vendor)

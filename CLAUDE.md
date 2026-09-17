@@ -1,7 +1,19 @@
 # dia-read-later (Clipfile browser extension)
 
-Chromium MV3 extension — save the current tab to the Clipfile list, browse/search/filter
-saved pages, read them offline. Ships in Dia, Chrome, Arc, Brave, Edge. Currently **v2.6**.
+Chromium MV3 extension — **save-only as of 2026-09-17**. Pressing the toolbar button, or the
+keyboard shortcut, saves the current tab and captures an offline copy of the body. There is no
+popup. Ships in Dia, Chrome, Arc, Brave, Edge. Currently **v2.6**.
+
+**Browsing and reading the list happens in Clipfile for Mac**, not here. The in-browser list,
+search, filters, folder grouping, notes panel and reader page were deleted when the Mac HUD
+landed: the same list in two places was confusing, and the product is Apple-ecosystem only.
+The consequence, accepted deliberately: anyone running this extension on Windows or Linux has
+a save button and no way to read what they saved. `git log` has the popup and reader if that
+ever needs revisiting.
+
+**Capture is why this still exists, and it is not portable.** An article body needs the live
+DOM and Readability running in the page, which no native app can do for Dia — so the extension
+stays load-bearing permanently even though it no longer shows anything.
 Repo: `github.com/shearmds/dia-read-later`. `README.md` covers features and the sync key.
 
 **Naming is genuinely inconsistent here and it isn't a mistake to fix.** The repo is
@@ -48,9 +60,10 @@ Mac/iOS apps: **Notch**, **Deets** (`~/Developer/addressbook`), **Prexy**
 for the ground and the accent wash, `PLAN-type-scale.md` for the type. Read them before
 changing anything visual.
 
-- **The token block at the top of `popup.css`, `reader.css` and `welcome.css` is
-  byte-identical in all three, and is a hand port of `Surfaces.swift` in the iOS app.**
-  Keep them identical. The values are copied, not derived — do not "tidy" them.
+- **The token block at the top of `options.css` and `welcome.css` is byte-identical in both,
+  and is a hand port of `Surfaces.swift` in the iOS app.** Keep them identical. The values are
+  copied, not derived — do not "tidy" them. (`popup.css` and `reader.css` carried it too, until
+  both were deleted with the list.)
 - **The ground is a 2x2** of (paper | bright) x (light | dark). Light/dark is
   `prefers-color-scheme`; the ground is `data-ground` on `:root`, set by JS, because CSS
   has no media query for "which cream". **Block order in the token block is load-bearing** —
@@ -64,10 +77,14 @@ changing anything visual.
   4px row spine, the save button and the accent swatches were all gradients and all stopped
   being gradients. Jottle records `design: .rounded` as the single largest reason it did not
   look like its siblings; gradients are this surface's equivalent.
-- **Watch the specificity of `#settings-panel button`.** It is `0,1,0,1` and outranks any
-  bare class, which silently overrode `.theme-swatch` and `.ground-option` backgrounds. Both
-  are scoped as `#theme-bar .theme-swatch` / `#ground-bar .ground-option` for that reason.
-  This was invisible while `buildThemeBar()` set the swatch colour as an inline style.
+- **Watch ID-scoped button rules.** `#settings-panel button` was `0,1,0,1` and outranked any
+  bare class, silently overriding `.theme-swatch` and `.ground-option` backgrounds. Both stay
+  scoped as `#theme-bar .theme-swatch` / `#ground-bar .ground-option` for that reason, and the
+  scoping is still correct on the options page even though the wrapper is gone. This was
+  invisible while `buildThemeBar()` set the swatch colour as an inline style.
+- **`inline-flex` does not stop a flex item stretching.** `#ground-bar` spanned the whole
+  column until it got `align-self: flex-start` — a flex item is blockified and stretched to the
+  cross axis regardless of its own `display`.
 - **Stored preferences.** `appTheme` keeps its seven original ids and gains `aurora`; the
   default moved from `ocean` to **`parchment`**, matching the iOS app and the icon. `ground`
   is new, `'paper'` (default) or `'bright'`. Never rename an id — it silently resets the
@@ -96,6 +113,11 @@ shortcut that does nothing.
 
 Note `Alt+S` types `ß` on a Mac when nothing claims it; Chrome intercepts it first, so the
 default is fine, but that is the kind of thing to check before suggesting a different one.
+
+**Both the button and the shortcut go through one `saveActiveTab()`.** They were separate once
+and the keyboard path quietly grew three silent failure modes the popup's button did not have.
+Note also that `chrome.action.onClicked` **only fires when `action.default_popup` is absent** —
+put a popup back in the manifest and the toolbar button stops saving, silently.
 
 **It confirms itself, through two channels.** A badge on the toolbar icon always works,
 including on pages scripts cannot touch, and needs no permission. An in-page toast in a

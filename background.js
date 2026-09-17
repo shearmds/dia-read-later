@@ -137,12 +137,21 @@ async function confirmSave(tab, message, tone) {
     toast(tab?.id, message, tone);
 }
 
-chrome.commands.onCommand.addListener(async (command) => {
-    if (command !== 'save-page') return;
-
+// One save path, two triggers.
+//
+// The extension is **save-only** as of the Mac app existing: pressing the
+// toolbar button saves the current page, exactly as Alt+S does, and there is
+// no popup. Browsing and reading the list happens in Clipfile for Mac, and
+// having the same list in two places was the confusion this removes.
+//
+// Both triggers land here so they cannot drift — the keyboard path already had
+// three silent failure modes when it was written separately from the popup's
+// Save button, and this is the same class of mistake waiting to happen again.
+async function saveActiveTab() {
     const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-    // Browser-internal pages cannot be saved and cannot be scripted, so this
-    // one can only ever reach the badge.
+
+    // Browser-internal pages can be neither saved nor scripted, so these can
+    // only ever reach the badge.
     if (!tab?.url || /^(chrome|edge|brave|arc|about|devtools|view-source):/.test(tab.url)) {
         confirmSave(tab, 'This page can\u2019t be saved', 'error');
         return;
@@ -151,8 +160,6 @@ chrome.commands.onCommand.addListener(async (command) => {
     const { readLater = [] } = await chrome.storage.local.get('readLater');
     const existing = readLater.find(item => item.url === tab.url);
     if (existing && !existing.deleted) {
-        // Used to return silently, which is indistinguishable from the
-        // shortcut not being bound at all.
         confirmSave(tab, existing.read ? 'Already saved \u2014 and read' : 'Already in Clipfile', 'warn');
         return;
     }
@@ -171,8 +178,19 @@ chrome.commands.onCommand.addListener(async (command) => {
 
     confirmSave(tab, 'Saved to Clipfile', 'ok');
     syncWithMenuBar();
-    // Auto-capture an offline copy for the page just saved via the shortcut.
+    // Capture an offline copy of the page just saved, so it can be read on a
+    // device that never had the tab open.
     makeOffline(tab.url);
+}
+
+// Fires only because `action.default_popup` is gone from the manifest. Leave a
+// popup in there and this listener is never called at all — silently, which is
+// the kind of thing to check first if the button stops saving.
+chrome.action.onClicked.addListener(() => { saveActiveTab(); });
+
+chrome.commands.onCommand.addListener((command) => {
+    if (command !== 'save-page') return;
+    saveActiveTab();
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

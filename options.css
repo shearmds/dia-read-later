@@ -1,0 +1,243 @@
+/* ---------------------------------------------------------------------------
+   Clipfile surface tokens — a hand port of Surfaces.swift, which this
+   product's iOS app and its four sibling apps (Notch, Deets, Prexy, Jottle)
+   all carry. Spec: ~/Developer/addressbook/docs/PLAN-ground-and-glass.md
+
+   The ground is a 2x2 of (paper | bright) x (light | dark). Light/dark is left
+   to prefers-color-scheme; the ground is an attribute JS puts on :root,
+   because CSS has no media query for "which cream".
+
+   --accent-light/-dark and --wash-light/-dark are set by JS from the chosen
+   accent. Both halves are always set, so the media queries below can pick
+   without JS watching matchMedia.
+   --------------------------------------------------------------------------- */
+:root {
+  color-scheme: light dark;
+
+  --accent-light: #6B5741;
+  --accent-dark:  #C9B291;
+  --wash-light:   235, 180, 119;
+  --wash-dark:    201, 172, 131;
+
+  --accent:    var(--accent-light);
+  --wash:      var(--wash-light);
+  --ground:    #F7F3EB;
+  --ink:       #181916;
+  --ink-2:     rgba(24, 25, 22, 0.62);
+  --hairline:  rgba(41, 42, 37, 0.16);
+  --selection: #E8EDE4;
+  --hover:     #EDF0E9;
+
+  /* Information, not theme. A colour is either the theme or it is
+     information; these two follow neither picker. */
+  --ok:  #34c759;
+  --bad: #ff3b30;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent:    var(--accent-dark);
+    --wash:      var(--wash-dark);
+    --ground:    #181916;
+    --ink:       #F3EFE5;
+    --ink-2:     rgba(243, 239, 229, 0.64);
+    --hairline:  rgba(243, 239, 229, 0.18);
+    --selection: #252B23;
+    --hover:     #212620;
+  }
+}
+
+/* Bright. On white there is no warmth in the ground to carry a grey
+   selection, so selection and hover take a wash of the accent instead —
+   hover at roughly half selection's alpha, which is the relationship the
+   paper values already hold. */
+:root[data-ground="bright"] {
+  --ground:    #FFFFFF;
+  --ink:       #1A1A1C;
+  --ink-2:     rgba(26, 26, 28, 0.62);
+  --hairline:  rgba(42, 42, 44, 0.16);
+  --selection: rgba(var(--wash), 0.16);
+  --hover:     rgba(var(--wash), 0.07);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-ground="bright"] {
+    --ground:    #1C1C1E;
+    --ink:       #F2F2F4;
+    --ink-2:     rgba(242, 242, 244, 0.64);
+    --hairline:  rgba(242, 242, 244, 0.18);
+    --selection: rgba(var(--wash), 0.30);
+    --hover:     rgba(var(--wash), 0.16);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px;
+  background: var(--ground);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+/* An options page opens as a normal, resizable tab rather than the popup's
+   fixed 440px bubble, so it gets a readable centred column instead. */
+#page {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#page h1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+
+#page section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#page .hint { font-size: 12px; color: var(--ink-2); line-height: 1.4; margin: 0; }
+
+/* Label register (see popup.css's .group-header / .item-folder for the same
+   register elsewhere in the family). */
+.settings-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+}
+
+.settings-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.settings-divider { height: 1px; background: var(--hairline); margin: 6px 0; }
+
+#shortcut-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* The binding itself is monospaced — it is a key combination, not prose, and
+   the sync key field already establishes mono as this page's register for
+   things you read character by character. */
+#shortcut-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 4px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
+  background: var(--hover);
+}
+#shortcut-value.unset {
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
+/* Generic button look for this page. Kept as a plain type selector (lower
+   specificity than any id+class rule) so it never fights the scoped swatch/
+   ground-option rules below — see the specificity trap noted in popup.css. */
+#page button, #import-label {
+  padding: 4px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
+  background: var(--hover);
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+#page button:hover, #import-label:hover { background: var(--hover); }
+
+#import-input { display: none; }
+
+#import-msg, #synckey-msg { font-size: 11px; color: var(--ok); }
+#import-msg:empty, #synckey-msg:empty { display: none; }
+
+#synckey-input {
+  padding: 6px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  outline: none;
+  width: 100%;
+}
+#synckey-input:focus { border-color: var(--accent); }
+
+.synckey-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Ground picker (Paper/Bright) — a two-up segmented control styled like the
+   other settings controls: hairline border, hover wash, and an active option
+   taking the selection fill, the same signal .theme-swatch.active gives its
+   own row. */
+#ground-bar {
+  display: inline-flex;
+  /* `inline-flex` is not enough on its own here. A flex item is blockified and
+     stretched to the cross axis, so inside the section's flex column this bar
+     spanned the full 560px instead of hugging its two buttons. */
+  align-self: flex-start;
+  width: fit-content;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  overflow: hidden;
+}
+/* Scoped to #ground-bar specifically because a generic "#page button" rule
+   (0,1,0,1) would otherwise outrank a bare class and silently override these
+   backgrounds — see popup.css / CLAUDE.md. Keep the scoping even though this
+   page has no #settings-panel wrapper; it is correct regardless. */
+#ground-bar .ground-option {
+  padding: 4px 12px;
+  border: none;
+  background: var(--hover);
+  font-size: 12px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+#ground-bar .ground-option + .ground-option { border-left: 1px solid var(--hairline); }
+#ground-bar .ground-option:hover { background: var(--selection); }
+#ground-bar .ground-option.active { background: var(--selection); color: var(--ink); font-weight: 600; }
+
+/* Theme swatches. */
+#theme-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 2px 0;
+  background: transparent;
+}
+
+/* Scoped to #theme-bar for the same specificity reason as #ground-bar above. */
+#theme-bar .theme-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s;
+  /* --sw-light/--sw-dark are set per button by buildThemeBar(). A swatch shows
+     the half of the accent pair that the app would actually draw right now,
+     rather than a blend of both. */
+  background: var(--sw-light);
+}
+@media (prefers-color-scheme: dark) {
+  #theme-bar .theme-swatch { background: var(--sw-dark); }
+}
+#theme-bar .theme-swatch:hover { transform: scale(1.15); }
+/* Ground-coloured ring, not a shadow: against the page it reads as a halo
+   cut into the swatch, which is enough to signal "selected". */
+#theme-bar .theme-swatch.active { border-color: var(--ground); }

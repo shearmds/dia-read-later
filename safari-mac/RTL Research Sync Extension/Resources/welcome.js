@@ -56,4 +56,9 @@ async function getOrCreateToken() {
     copyBtn.textContent = 'Copied!';
     setTimeout(() => { copyBtn.textContent = 'Copy Sync Key'; }, 2000);
   });
+
+  const settingsBtn = document.getElementById('settings-btn');
+  settingsBtn.addEventListener('click', () => {
+    chrome.runtime.openOptionsPage();
+  });
 })();
