@@ -12,8 +12,20 @@ a save button and no way to read what they saved. `git log` has the popup and re
 ever needs revisiting.
 
 **Capture is why this still exists, and it is not portable.** An article body needs the live
-DOM and Readability running in the page, which no native app can do for Dia — so the extension
-stays load-bearing permanently even though it no longer shows anything.
+DOM and Readability running in the page — so the extension stays load-bearing permanently even
+though it no longer shows anything.
+
+**"No native app can do this" is not quite true, and the nuances are measured in
+`~/Developer/research-sync/ReadLater/docs/CAPTURE.md`.** Read it before concluding anything
+about replacing or supplementing the extension. The short version: a Mac app *can* get the same
+authenticated text two other ways — Apple Events JavaScript (measured at 10,544 chars on a
+paywalled NYT article, but Safari and Chrome only, since **Dia gates it behind a launch flag
+with no persistent setting** — that was tested to destruction) and the accessibility tree
+(10,739 chars, works in Dia, but needs the `AXManualAccessibility` switch nobody documents, plus
+the heavy Accessibility permission and a cleanup layer).
+
+Neither is better than this extension. Both matter for users who will not install one. The
+extension remains the default and the best output.
 Repo: `github.com/shearmds/dia-read-later`. `README.md` covers features and the sync key.
 
 **Naming is genuinely inconsistent here and it isn't a mistake to fix.** The repo is
