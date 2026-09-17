@@ -86,8 +86,11 @@ async function toast(tabId, message, tone) {
                 // Shadow DOM so nothing the page ships can restyle or select
                 // this, and so removing the host removes every trace.
                 const host = document.createElement('div');
+                // Top right: near where the toolbar icon that just flashed
+                // its badge lives, so the two reads as one confirmation
+                // rather than two unrelated things happening at once.
                 host.style.cssText =
-                    'position:fixed;z-index:2147483647;right:16px;bottom:16px;' +
+                    'position:fixed;z-index:2147483647;right:16px;top:16px;' +
                     'pointer-events:none;';
                 const root = host.attachShadow({ mode: 'closed' });
                 const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -104,7 +107,7 @@ async function toast(tabId, message, tone) {
                     'border:1px solid ' + hairline + ';border-left:3px solid ' + bar + ';' +
                     'border-radius:10px;padding:10px 14px;' +
                     'box-shadow:0 6px 24px rgba(0,0,0,.18);' +
-                    'opacity:0;transform:translateY(6px);' +
+                    'opacity:0;transform:translateY(-6px);' +
                     'transition:opacity .18s ease,transform .18s ease;' +
                     '">' + msg + '</div>';
                 document.documentElement.appendChild(host);
@@ -115,7 +118,7 @@ async function toast(tabId, message, tone) {
                 });
                 setTimeout(() => {
                     card.style.opacity = '0';
-                    card.style.transform = 'translateY(6px)';
+                    card.style.transform = 'translateY(-6px)';
                     setTimeout(() => host.remove(), 220);
                 }, 1600);
             },

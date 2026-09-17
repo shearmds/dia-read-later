@@ -99,7 +99,7 @@ default is fine, but that is the kind of thing to check before suggesting a diff
 
 **It confirms itself, through two channels.** A badge on the toolbar icon always works,
 including on pages scripts cannot touch, and needs no permission. An in-page toast in a
-**closed shadow root** at the bottom right is the visible one, using `scripting` and
+**closed shadow root** at the top right is the visible one, using `scripting` and
 `<all_urls>` which are already held for offline capture; it fails on `chrome://`, the Web
 Store and PDFs, which is precisely why the badge is there too. Three tones, distinguished by
 a coloured left bar: the accent for a save, amber for already-saved, red for a page that
