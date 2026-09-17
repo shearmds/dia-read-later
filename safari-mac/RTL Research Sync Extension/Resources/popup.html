@@ -61,6 +61,19 @@
 
       <div class="settings-divider"></div>
 
+      <div class="settings-section-title">Shortcut</div>
+      <div id="shortcut-row">
+        <span id="shortcut-value">…</span>
+        <button id="shortcut-btn">Change…</button>
+      </div>
+      <p class="hint">
+        Saves the current page without opening this popup. Chrome only lets
+        shortcuts be changed from its own extensions page, so the button opens
+        it there — an extension cannot set its own.
+      </p>
+
+      <div class="settings-divider"></div>
+
       <div class="settings-section-title">Data</div>
       <div class="settings-buttons">
         <button id="export-btn">Export JSON</button>
@@ -69,7 +82,6 @@
           Import JSON
           <input id="import-input" type="file" accept=".json" />
         </label>
-        <button id="shortcut-btn" title="Set a keyboard shortcut to save without opening the popup">⌨ Shortcut</button>
       </div>
       <span id="import-msg"></span>
 

@@ -90,6 +90,7 @@ async function load() {
   const { readLater = [], appTheme = 'parchment', ground = 'paper', folderView = false, collapsedFolders: storedCollapsed = [] } =
     await chrome.storage.local.get(['readLater', 'appTheme', 'ground', 'folderView', 'collapsedFolders']);
   applyTheme(appTheme);
+  renderShortcut();
   applyGround(ground);
   allItems = readLater;
   groupByFolder = folderView;
@@ -629,7 +630,34 @@ function importData(file) {
 }
 
 document.getElementById("shortcut-btn").addEventListener("click", () => {   
-  chrome.tabs.create({ url: "chrome://extensions/shortcuts" }); 
+  chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
+
+// Shows the shortcut that is actually bound right now, rather than the one the
+// manifest suggested.
+//
+// **`chrome.commands` is read-only on purpose.** `getAll()` reports the
+// bindings; there is no setter and deliberately never has been, because an
+// extension that could silently claim a key combination would be a keylogger
+// with extra steps. So the shortcut IS user-selectable — just only through
+// `chrome://extensions/shortcuts`. The most this panel can do is say what the
+// binding currently is and open that page.
+//
+// The manifest suggests Alt+S. Chrome drops a suggested default silently when
+// another extension already holds the combination, which is exactly why the
+// live value has to be read: otherwise this panel advertises a shortcut that
+// does nothing.
+async function renderShortcut() {
+  const el = document.getElementById("shortcut-value");
+  if (!el) return;
+  try {
+    const commands = await chrome.commands.getAll();
+    const save = commands.find((c) => c.name === "save-page");
+    el.textContent = save && save.shortcut ? save.shortcut : "Not set";
+    el.classList.toggle("unset", !(save && save.shortcut));
+  } catch {
+    el.textContent = "Unavailable";
+  }
+} 
 });
 
 document.getElementById("export-btn").addEventListener("click", exportData);

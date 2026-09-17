@@ -521,6 +521,29 @@ kbd {
 
 .settings-divider { height: 1px; background: var(--hairline); margin: 2px 0; }
 
+#shortcut-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* The binding itself is monospaced — it is a key combination, not prose, and
+   the sync key field already establishes mono as this panel's register for
+   things you read character by character. */
+#shortcut-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 4px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
+  background: var(--hover);
+}
+#shortcut-value.unset {
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
 #settings-panel button, #import-label {
   padding: 4px 10px;
   border: 1px solid var(--hairline);

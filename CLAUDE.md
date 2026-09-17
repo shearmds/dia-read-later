@@ -77,6 +77,26 @@ changing anything visual.
 - The **reader's** larger, looser type and its measure are a deliberate exception to the
   row type scale — it is a reading register.
 
+## The save shortcut
+
+`manifest.json` declares one command, `save-page`, suggesting **Alt+S** (⌥S on a Mac). It
+saves the current tab and captures the body without opening the popup — `background.js`
+handles it and calls `makeOffline` on the same path the popup's Save button does.
+
+**It is already user-selectable, and it can only ever be selectable the browser's way.**
+`chrome.commands` has `getAll()` and no setter, deliberately and permanently: an extension
+that could silently claim a key combination would be a keylogger with extra steps. Rebinding
+happens at `chrome://extensions/shortcuts`, and the Shortcut section in the settings panel
+opens it. **Do not go looking for an API to build an in-popup recorder — there isn't one.**
+
+The panel reads the **live** binding through `chrome.commands.getAll()` rather than printing
+the manifest's suggestion, because Chrome drops a suggested default silently when another
+extension already holds the combination. Printing `Alt+S` unconditionally would advertise a
+shortcut that does nothing.
+
+Note `Alt+S` types `ß` on a Mac when nothing claims it; Chrome intercepts it first, so the
+default is fine, but that is the kind of thing to check before suggesting a different one.
+
 ## Constraints
 
 - **Article bodies are end-to-end encrypted before they leave the browser.** The Worker stores
