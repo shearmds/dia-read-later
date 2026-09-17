@@ -23,6 +23,11 @@ function applyTheme(id) {
   document.querySelectorAll('.theme-swatch').forEach(el => {
     el.classList.toggle('active', el.dataset.theme === t.id);
   });
+  // Persist the resolved pair so background.js can tint the save toast without
+  // carrying a fourth copy of the palette. The table already lives here, in
+  // reader.js and in welcome.js; a fifth would be the Parchment situation all
+  // over again.
+  chrome.storage.local.set({ accentPair: { light: t.accent, dark: t.accentDark } });
 }
 
 function applyGround(ground) {

@@ -36,15 +36,123 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === 'syncWithMenuBar') syncWithMenuBar();
 });
 
+// Feedback for a save that happens with no popup open.
+//
+// **Alt+S used to be completely silent** — no badge, no notification, nothing,
+// and three of its paths did nothing at all without saying so: an already-saved
+// page returned early, a restricted URL returned early, and a failure to
+// capture the body was swallowed. The keystroke's whole appeal is not opening
+// the popup, which also means the popup cannot be where the confirmation
+// lives.
+//
+// Two channels, deliberately:
+//
+//   - **A badge on the toolbar icon.** Always works, on every page including
+//     the ones scripts cannot touch, and needs no permission.
+//   - **A toast on the page.** Far more visible, and uses `scripting` and
+//     `<all_urls>`, which this extension already holds for offline capture. It
+//     fails on chrome://, the Web Store and PDFs, which is exactly why the
+//     badge exists as well.
+//
+// **No `notifications` permission.** `chrome.notifications` would be the
+// obvious route and would mean adding a permission to a published extension,
+// which re-triggers review and shows existing users a scary prompt on update.
+// Not worth it for a confirmation toast.
+const BADGE_MS = 1800;
+
+async function accentPair() {
+    const { accentPair } = await chrome.storage.local.get('accentPair');
+    // Parchment, the default accent, for an install whose popup has never been
+    // opened and so has never written the pair.
+    return accentPair ?? { light: '#6B5741', dark: '#C9B291' };
+}
+
+async function flashBadge(text, colour) {
+    try {
+        await chrome.action.setBadgeText({ text });
+        await chrome.action.setBadgeBackgroundColor({ color: colour });
+        setTimeout(() => chrome.action.setBadgeText({ text: '' }), BADGE_MS);
+    } catch { /* badge is best-effort */ }
+}
+
+async function toast(tabId, message, tone) {
+    if (tabId == null) return;
+    const pair = await accentPair();
+    try {
+        await chrome.scripting.executeScript({
+            target: { tabId },
+            args: [message, pair.light, pair.dark, tone],
+            func: (msg, accentLight, accentDark, kind) => {
+                // Shadow DOM so nothing the page ships can restyle or select
+                // this, and so removing the host removes every trace.
+                const host = document.createElement('div');
+                host.style.cssText =
+                    'position:fixed;z-index:2147483647;right:16px;bottom:16px;' +
+                    'pointer-events:none;';
+                const root = host.attachShadow({ mode: 'closed' });
+                const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const accent = dark ? accentDark : accentLight;
+                const ground = dark ? '#181916' : '#F7F3EB';
+                const ink = dark ? '#F3EFE5' : '#181916';
+                const hairline = dark ? 'rgba(243,239,229,.18)' : 'rgba(41,42,37,.16)';
+                const bar = kind === 'warn' ? '#8a6d00'
+                          : kind === 'error' ? '#ff3b30' : accent;
+                root.innerHTML =
+                    '<div style="' +
+                    'font:600 13px/1.3 -apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;' +
+                    'color:' + ink + ';background:' + ground + ';' +
+                    'border:1px solid ' + hairline + ';border-left:3px solid ' + bar + ';' +
+                    'border-radius:10px;padding:10px 14px;' +
+                    'box-shadow:0 6px 24px rgba(0,0,0,.18);' +
+                    'opacity:0;transform:translateY(6px);' +
+                    'transition:opacity .18s ease,transform .18s ease;' +
+                    '">' + msg + '</div>';
+                document.documentElement.appendChild(host);
+                const card = root.firstElementChild;
+                requestAnimationFrame(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                });
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(6px)';
+                    setTimeout(() => host.remove(), 220);
+                }, 1600);
+            },
+        });
+    } catch {
+        // Restricted page. The badge already said it.
+    }
+}
+
+async function confirmSave(tab, message, tone) {
+    const colour = tone === 'warn' ? '#8a6d00'
+                 : tone === 'error' ? '#ff3b30'
+                 : (await accentPair()).light;
+    const glyph = tone === 'ok' ? '\u2713' : tone === 'warn' ? '\u2022' : '\u00d7';
+    flashBadge(glyph, colour);
+    toast(tab?.id, message, tone);
+}
+
 chrome.commands.onCommand.addListener(async (command) => {
     if (command !== 'save-page') return;
 
     const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-    if (!tab?.url || tab.url.startsWith('chrome://')) return;
+    // Browser-internal pages cannot be saved and cannot be scripted, so this
+    // one can only ever reach the badge.
+    if (!tab?.url || /^(chrome|edge|brave|arc|about|devtools|view-source):/.test(tab.url)) {
+        confirmSave(tab, 'This page can\u2019t be saved', 'error');
+        return;
+    }
 
     const { readLater = [] } = await chrome.storage.local.get('readLater');
     const existing = readLater.find(item => item.url === tab.url);
-    if (existing && !existing.deleted) return;
+    if (existing && !existing.deleted) {
+        // Used to return silently, which is indistinguishable from the
+        // shortcut not being bound at all.
+        confirmSave(tab, existing.read ? 'Already saved \u2014 and read' : 'Already in Clipfile', 'warn');
+        return;
+    }
 
     const now = Date.now();
     if (existing) {
@@ -58,6 +166,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     }
     await chrome.storage.local.set({ readLater });
 
+    confirmSave(tab, 'Saved to Clipfile', 'ok');
     syncWithMenuBar();
     // Auto-capture an offline copy for the page just saved via the shortcut.
     makeOffline(tab.url);

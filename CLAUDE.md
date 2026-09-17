@@ -97,6 +97,24 @@ shortcut that does nothing.
 Note `Alt+S` types `ß` on a Mac when nothing claims it; Chrome intercepts it first, so the
 default is fine, but that is the kind of thing to check before suggesting a different one.
 
+**It confirms itself, through two channels.** A badge on the toolbar icon always works,
+including on pages scripts cannot touch, and needs no permission. An in-page toast in a
+**closed shadow root** at the bottom right is the visible one, using `scripting` and
+`<all_urls>` which are already held for offline capture; it fails on `chrome://`, the Web
+Store and PDFs, which is precisely why the badge is there too. Three tones, distinguished by
+a coloured left bar: the accent for a save, amber for already-saved, red for a page that
+cannot be saved.
+
+**Do not reach for `chrome.notifications`.** It is the obvious route and it means adding a
+permission to a published extension, which re-triggers review and shows every existing user a
+prompt on update. Not worth it for a confirmation.
+
+The toast is tinted from `accentPair` in `chrome.storage.local`, which `applyTheme` writes
+whenever the accent changes. That exists so `background.js` does not carry a fourth copy of
+the palette — it already lives in `popup.js`, `reader.js` and `welcome.js`, and a fifth is how
+the Parchment drift started. A fresh install whose popup has never been opened falls back to
+Parchment's pair, the app default.
+
 ## Constraints
 
 - **Article bodies are end-to-end encrypted before they leave the browser.** The Worker stores
