@@ -151,8 +151,10 @@ Parchment's pair, the app default.
 
 ## Constraints
 
-- **Article bodies are end-to-end encrypted before they leave the browser.** The Worker stores
-  ciphertext it cannot read, so any debugging that needs plaintext has to happen client-side.
+- **Article bodies are encrypted before they leave the browser** — at rest, **not end to end**.
+  The Worker stores only ciphertext and never decrypts it, but the body key is derived from the
+  sync token the Worker receives on every request, so it *could*. See `readlater-sync/CRYPTO.md`.
+  Any debugging that needs plaintext still has to happen client-side.
   The crypto has to stay interoperable with the iOS app, the Raycast extension and the Worker —
   that's what `test/offline-crypto.test.mjs` guards. Run it after touching `offline.js`.
 - **The sync key is the whole account.** There is no login and no recovery: anyone holding the
