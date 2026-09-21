@@ -26,7 +26,16 @@ set -euo pipefail
 # ---- Config -----------------------------------------------------------------
 APP_NAME="Clipfile"
 TEAM_ID="95E9CZ9HW6"
-NOTARY_PROFILE="${NOTARY_PROFILE:-ClipfileNotary}"   # keychain profile name. This one
+# The family notarytool profile, set 2026-09-21. Every per-app name this line
+# used to carry was non-working: StoryDeskNotary / WardrobeStylistNotary /
+# BookTrackerNotary exist but return 401 (an Apple ID password change revokes
+# every app-specific password at once), and DeetsNotary / ClipfileNotary were
+# never created at all. Note 401 means a dead password; "No Keychain password
+# item found" means no profile. Apple ID is shearm@mac.com. Store with
+# --password OMITTED so notarytool prompts rather than taking a secret on the
+# command line:  xcrun notarytool store-credentials "ShearNotary" \
+#                  --apple-id "shearm@mac.com" --team-id "95E9CZ9HW6"
+NOTARY_PROFILE="${NOTARY_PROFILE:-ShearNotary}"
                                                    # is NOT stored yet — either create it (see
                                                    # Prerequisites) or reuse an existing profile:
                                                    #   NOTARY_PROFILE=BookTrackerNotary ./scripts/package-dmg.sh ...
