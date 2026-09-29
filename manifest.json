@@ -30,6 +30,13 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["hotkey.js"],
+      "run_at": "document_start"
+    }
+  ],
   "commands": {
     "save-page": {
       "suggested_key": {

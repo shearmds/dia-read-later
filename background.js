@@ -194,6 +194,11 @@ chrome.commands.onCommand.addListener((command) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // Hyper-; from hotkey.js, which Chrome's `commands` cannot bind.
+    if (message.action === 'savePage') {
+        saveActiveTab();
+        return false;
+    }
     if (message.action === 'syncNow') {
         syncWithMenuBar().then(() => sendResponse({ ok: true }));
         return true;
