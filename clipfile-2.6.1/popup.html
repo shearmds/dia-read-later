@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Fixed width (matches body). Safari popovers honor this meta and would
+       otherwise lay out at screen width and scale the content down (tiny text);
+       Chrome ignores it in popups, so this is safe for both. -->
+  <meta name="viewport" content="width=440, initial-scale=1.0" />
+  <title>Clipfile</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>
+        Clipfile
+        <button id="settings-btn" class="icon-btn" title="Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path fill="currentColor" d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54A.49.49 0 0 0 13.9 2h-3.84a.49.49 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.7 8.47a.49.49 0 0 0 .12.61l2.03 1.58c-.05.31-.07.63-.07.94s.02.63.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.13.22.39.31.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.2.09.46 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58ZM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2Z"/>
+          </svg>
+        </button>
+      </h1>
+      <div class="header-actions">
+        <div id="search-wrap">
+          <input id="search" type="text" placeholder="Search…" autocomplete="off" />
+          <button id="search-clear" title="Clear search" aria-label="Clear search">&times;</button>
+        </div>
+        <button id="save-btn" title="Save current page">+ Save</button>
+      </div>
+    </header>
+
+    <div id="filter-bar">
+      <button class="filter active" data-filter="all">All</button>
+      <button class="filter" data-filter="unread">Unread</button>
+      <button class="filter" data-filter="read">Read</button>
+      <button id="folder-toggle" class="filter filter-toggle" title="Group by folder" aria-label="Group by folder">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>
+        </svg>
+      </button>
+    </div>
+
+    <ul id="list"></ul>
+
+    <div id="empty">
+      <p>No saved pages yet.</p>
+      <p class="hint">Click <strong>+ Save</strong> or press <kbd>Alt+S</kbd> to save the current page.</p>
+    </div>
+
+    <div id="settings-panel">
+      <div class="settings-section-title">Theme</div>
+      <div id="theme-bar"></div>
+
+      <div class="settings-divider"></div>
+
+      <div class="settings-section-title">Data</div>
+      <div class="settings-buttons">
+        <button id="export-btn">Export JSON</button>
+        <button id="export-csv-btn">Export CSV</button>
+        <label id="import-label">
+          Import JSON
+          <input id="import-input" type="file" accept=".json" />
+        </label>
+        <button id="shortcut-btn" title="Set a keyboard shortcut to save without opening the popup">⌨ Shortcut</button>
+      </div>
+      <span id="import-msg"></span>
+
+      <div class="settings-divider"></div>
+
+      <div class="settings-section-title">Sync Key</div>
+      <p class="hint">
+        Your sync key links your devices. Paste the same key on each device to
+        share one list. Keep it private — anyone with it can read your saved pages.
+      </p>
+      <input id="synckey-input" type="text" placeholder="Sync key" autocomplete="off" spellcheck="false" />
+      <div class="synckey-actions">
+        <button id="synckey-copy">Copy</button>
+        <button id="synckey-save">Save key</button>
+        <button id="synckey-generate">Generate new</button>
+      </div>
+      <span id="synckey-msg"></span>
+
+      <button id="settings-done" class="settings-done">Done</button>
+    </div>
+
+    <div id="notes-panel">
+      <div id="notes-panel-title"></div>
+      <button id="notes-panel-open" class="notes-open-link" title="Open article">
+        <span id="notes-panel-url"></span>
+        <span aria-hidden="true">↗</span>
+      </button>
+      <textarea id="notes-textarea" placeholder="Why did you save this?"></textarea>
+      <div class="notes-actions">
+        <button id="notes-cancel">Cancel</button>
+        <button id="notes-save" class="settings-done">Save</button>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

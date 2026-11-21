@@ -1,0 +1,103 @@
+:root {
+  /* Light-locked, matching the rest of the app family. */
+  color-scheme: light;
+  --theme-start: #26c6da;
+  --theme-end: #1565c0;
+}
+
+body {
+  margin: 0;
+  /* A faint wash of the selected theme behind the reading page. */
+  background: color-mix(in srgb, var(--theme-start) 5%, #ffffff);
+  color: #1c1c1e;
+  font: 18px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* The article sits on a floating white page — the reader's take on the app's
+   card surfaces. */
+#reader {
+  max-width: 42rem;
+  margin: 2rem auto 4rem;
+  padding: 3rem 2.5rem 5rem;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+#status {
+  color: #8e8e93;
+  text-align: center;
+  margin-top: 4rem;
+}
+
+#head {
+  /* Themed gradient rule under the title (echoes the header outline elsewhere). */
+  border-width: 0 0 2px;
+  border-style: solid;
+  border-image: linear-gradient(90deg, var(--theme-start), var(--theme-end)) 1;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+#title {
+  font-size: 2rem;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+}
+
+#site {
+  color: #8e8e93;
+  font-size: 0.95rem;
+}
+
+#original {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--theme-end);
+  text-decoration: none;
+}
+#original:hover { text-decoration: underline; }
+
+#content img,
+#content figure,
+#content video {
+  max-width: 100%;
+  height: auto;
+}
+
+#content figure { margin: 1.5rem 0; }
+
+#content figcaption {
+  font-size: 0.85rem;
+  color: #8e8e93;
+  text-align: center;
+  margin-top: 0.4rem;
+}
+
+#content a { color: var(--theme-end); }
+
+#content pre {
+  overflow-x: auto;
+  background: #f2f2f7;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+#content blockquote {
+  margin: 1.25rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--theme-end);
+  color: #48484a;
+}
+
+/* On phones the floating page gives way to an edge-to-edge sheet. */
+@media (max-width: 46rem) {
+  #reader {
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 2rem 1.25rem 4rem;
+  }
+}

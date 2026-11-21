@@ -1,0 +1,543 @@
+:root {
+  --theme-start: #26c6da;
+  --theme-end: #1565c0;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px;
+  /* Whisper of the selected theme behind the content (matches the app). */
+  background: linear-gradient(180deg, #ffffff 0%,
+              color-mix(in srgb, var(--theme-start) 7%, #ffffff) 100%);
+  color: #1a1a1a;
+  width: 440px;
+  min-height: 200px;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* iOS Safari presents the popover at full device width, so let the fixed
+   desktop width give way to 100% on touch devices (no effect on desktop). */
+@media (pointer: coarse) {
+  body { width: 100%; }
+}
+
+/* Some surfaces present the popup in a real resizable window (Dia's detached
+   extension window, or popup.html opened in a tab) instead of a shrink-to-fit
+   bubble. There the fixed 440x600 box leaves dead canvas to the right and
+   overflows the window vertically, so #list never gets to be the scroller.
+   A Chromium popup bubble sizes its viewport to the 440px body and never
+   matches this query, so the bubble path is untouched. */
+@media (min-width: 480px) {
+  html { height: 100%; }
+  body {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+  }
+}
+
+#app { display: flex; flex-direction: column; height: 100%; }
+
+header {
+  margin: 10px 10px 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  color: #1a1a1a;
+  /* White fill framed by a themed gradient border — the same "outlined header
+     card" the iOS app uses, rather than a full gradient banner. */
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(135deg, var(--theme-start), var(--theme-end)) border-box;
+  box-shadow: 0 3px 8px color-mix(in srgb, var(--theme-start) 18%, transparent);
+}
+
+h1 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.header-actions { display: flex; gap: 8px; }
+
+#search-wrap { position: relative; flex: 1; display: flex; align-items: center; }
+
+#search {
+  width: 100%;
+  padding: 7px 26px 7px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.05);
+  color: #1a1a1a;
+  outline: none;
+}
+#search::placeholder { color: #8e8e93; }
+#search:focus {
+  border-color: var(--theme-end);
+  background: #fff;
+  color: #1a1a1a;
+}
+#search:focus::placeholder { color: #b0b0b5; }
+
+#search-clear {
+  position: absolute;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: none;
+  color: #8e8e93;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+}
+#search-clear:hover { opacity: 1; background: rgba(0, 0, 0, 0.08); }
+#search-wrap.has-value #search-clear { display: flex; }
+
+#search-wrap:focus-within #search-clear {
+  color: #8e8e93;
+}
+#search-wrap:focus-within #search-clear:hover {
+  color: #1a1a1a;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+#save-btn {
+  padding: 7px 14px;
+  background: linear-gradient(135deg, var(--theme-start), var(--theme-end));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--theme-end) 30%, transparent);
+}
+#save-btn:hover { filter: brightness(1.06); }
+#save-btn.saved {
+  background: #34c759;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(52, 199, 89, 0.3);
+}
+
+#filter-bar {
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px 4px;
+  background: transparent;
+}
+
+.filter {
+  padding: 4px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  background: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  color: #555;
+}
+.filter.active { background: var(--theme-end); color: #fff; border-color: var(--theme-end); }
+
+.filter-toggle { margin-left: auto; }
+/* Folder grouping toggle: an icon-only pill (matches the iOS app's folder glyph). */
+#folder-toggle {
+  padding: 5px 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+#folder-toggle svg { display: block; }
+/* Grouping is temporarily overridden by an active search — the toggle stays
+   "on" (so it resumes once the search clears) but reads as paused, not off. */
+.filter-toggle.active.suspended {
+  background: transparent;
+  color: var(--theme-end);
+  opacity: 0.6;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8e8e93;
+  cursor: pointer;
+  user-select: none;
+}
+.group-header:first-child { padding-top: 4px; }
+.group-header:hover { color: #48484c; }
+
+.group-header-chevron {
+  font-size: 10px;
+  transition: transform 0.12s;
+  transform: rotate(0deg);
+}
+.group-header.collapsed .group-header-chevron { transform: rotate(-90deg); }
+
+.group-header-count {
+  margin-left: auto;
+  font-weight: 600;
+  color: #c7c7cc;
+}
+
+.group-header-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #007aff;
+  flex-shrink: 0;
+}
+
+/* Theme swatches — now live in the Settings panel (like the iOS app). */
+#theme-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 2px 0;
+  background: transparent;
+}
+
+.theme-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s;
+}
+.theme-swatch:hover { transform: scale(1.15); }
+.theme-swatch.active { border-color: #fff; box-shadow: 0 0 0 1.5px rgba(0,0,0,0.25); }
+
+#list {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  padding: 4px 0 10px;
+}
+
+/* Each saved page is a white card with a theme-gradient accent spine on the
+   left (muted grey once read) — the signature ReadLater/QuickNote row. */
+.item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 8px 12px;
+  padding: 11px 14px 11px 16px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.item::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(135deg, var(--theme-start), var(--theme-end));
+}
+.item:hover { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
+.item.is-read { opacity: 0.7; background: #fbfbfd; }
+.item.is-read::before { background: rgba(0, 0, 0, 0.18); }
+
+.item-favicon {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+
+.item-body { flex: 1; min-width: 0; }
+
+.item-title {
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #1a1a1a;
+}
+.item.is-read .item-title { color: #8e8e93; }
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  min-width: 0;
+}
+
+.item-url {
+  font-size: 12px;
+  color: #8e8e93;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.item-category {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.item-folder {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  color: var(--theme-end);
+  background: color-mix(in srgb, var(--theme-end) 15%, transparent);
+}
+
+.item-sorting {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8e8e93;
+  flex-shrink: 0;
+}
+.item-sorting-spinner {
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid #d1d1d6;
+  border-top-color: #8e8e93;
+  border-radius: 50%;
+  animation: offline-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.item:hover .item-actions { opacity: 1; }
+@media (hover: none) { .item-actions { opacity: 1; } }
+
+.item-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 7px;
+  line-height: 1;
+  color: #6c6c70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.item-actions button:hover { background: #e0e0e6; }
+.item-actions button svg { width: 18px; height: 18px; display: block; }
+
+/* Offline button. The "read offline" (saved) and "unavailable" states are kept
+   visible (not hover-gated) so availability reads at a glance — like the book
+   icon in the iOS app. The "save for offline" download only shows on hover. */
+.offline-btn.offline-saved { color: var(--theme-end); opacity: 1; }
+.offline-btn.offline-requested { color: #8e8e93; opacity: 1; cursor: default; }
+.offline-btn.offline-unavailable { color: #c7c7cc; opacity: 1; }
+.item-actions .offline-btn.offline-saved,
+.item-actions .offline-btn.offline-requested,
+.item-actions .offline-btn.offline-unavailable { opacity: 1; }
+
+.offline-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid #d1d1d6;
+  border-top-color: #8e8e93;
+  border-radius: 50%;
+  animation: offline-spin 0.7s linear infinite;
+}
+@keyframes offline-spin { to { transform: rotate(360deg); } }
+
+#empty {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #8e8e93;
+  text-align: center;
+  gap: 8px;
+}
+#empty.visible { display: flex; }
+#empty .hint { font-size: 12px; }
+kbd {
+  background: #e5e5ea;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+/* Settings gear in header */
+.icon-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+.icon-btn:hover { background: rgba(0, 0, 0, 0.06); }
+
+/* Collapsible settings panel */
+#settings-panel {
+  padding: 12px 14px;
+  border-top: 1px solid #e5e5ea;
+  background: #fff;
+  flex-direction: column;
+  gap: 8px;
+  display: none;
+}
+#settings-panel.open { display: flex; }
+#settings-panel .hint { font-size: 11px; color: #8e8e93; line-height: 1.4; margin: 0; }
+
+.settings-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8e8e93;
+}
+
+.settings-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.settings-divider { height: 1px; background: #e5e5ea; margin: 2px 0; }
+
+#settings-panel button, #import-label {
+  padding: 4px 10px;
+  border: 1px solid #d1d1d6;
+  border-radius: 7px;
+  background: #f2f2f7;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#settings-panel button:hover, #import-label:hover { background: #e5e5ea; }
+
+#import-input { display: none; }
+
+#import-msg, #synckey-msg { font-size: 11px; color: #34c759; }
+#import-msg:empty, #synckey-msg:empty { display: none; }
+
+#synckey-input {
+  padding: 6px 10px;
+  border: 1px solid #d1d1d6;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  outline: none;
+}
+#synckey-input:focus { border-color: var(--theme-end); }
+
+.synckey-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+#settings-panel .settings-done { align-self: flex-end; margin-top: 2px; }
+
+/* Notes panel (reuses the settings panel's collapsible/look-and-feel) */
+#notes-panel {
+  padding: 12px 14px;
+  border-top: 1px solid #e5e5ea;
+  background: #fff;
+  flex-direction: column;
+  gap: 8px;
+  display: none;
+}
+#notes-panel.open { display: flex; }
+
+#notes-panel-title { font-size: 13px; font-weight: 600; }
+
+.notes-open-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--theme-end);
+  text-align: left;
+}
+.notes-open-link:hover { text-decoration: underline; }
+#notes-panel-url {
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#notes-textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 8px 10px;
+  border: 1px solid #d1d1d6;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+}
+#notes-textarea:focus { border-color: var(--theme-end); }
+
+.notes-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.notes-actions button {
+  padding: 4px 10px;
+  border: 1px solid #d1d1d6;
+  border-radius: 7px;
+  background: #f2f2f7;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+}
+.notes-actions button:hover { background: #e5e5ea; }
+
+.item-note-indicator {
+  font-size: 11px;
+  color: var(--theme-end);
+  flex-shrink: 0;
+}

@@ -4,6 +4,12 @@ Chromium MV3 extension — **save-only as of 2026-09-17**. Pressing the toolbar 
 keyboard shortcut, saves the current tab and captures an offline copy of the body. There is no
 popup. Ships in Dia, Chrome, Arc, Brave, Edge. Currently **v2.6**.
 
+**The repo root is not what the Chrome Web Store has.** The store has **2.6.1**
+(`clipfile-2.6.1/`, 2026-11-21): the August 2.6 build (popup list and reader) plus only the
+`offline.js` fix for the minutely 404 loop. The save-only redesign and the Hyper-; hotkey on
+`main` have never been submitted. `clipfile-<version>/` folders are tracked snapshots of what
+was submitted — never edit them retroactively; a hotfix copies the last one.
+
 **Browsing and reading the list happens in Clipfile for Mac**, not here. The in-browser list,
 search, filters, folder grouping, notes panel and reader page were deleted when the Mac HUD
 landed: the same list in two places was confusing, and the product is Apple-ecosystem only.
