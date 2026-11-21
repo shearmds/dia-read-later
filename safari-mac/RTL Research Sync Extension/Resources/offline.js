@@ -208,23 +208,43 @@ async function offlineFetchBody(url, token) {
   return record;
 }
 
-// Within a service-worker lifetime, remember URLs we tried and failed to fetch
-// so a minutely sync doesn't hammer the Worker with the same 404s.
-const offlineFetchAttempted = new Set();
+// URLs whose body fetch failed, with when to try again, so a minutely sync
+// doesn't hammer the Worker with the same 404s. **Persisted in
+// chrome.storage.local, not memory.** This used to be an in-memory Set "for the
+// service-worker lifetime" — but MV3 kills an idle worker after ~30s and the
+// 1-minute alarm wakes a fresh one, so the Set was always empty and every sync
+// re-requested every missing body. One user with 27 bodies that were never
+// uploaded made ~39,000 404s a day (measured 2026-11-21, over half the
+// Worker's traffic).
+const OFFLINE_MISSING_KEY = 'offlineMissing';
+// A 404 usually means "never uploaded" and stays that way, but the capturing
+// device can upload later (the Mac retries a first-capture 403), so retry daily.
+const OFFLINE_MISSING_RETRY_MS = 24 * 60 * 60 * 1000;
+// Network errors are transient: retry soon, but not every minute.
+const OFFLINE_ERROR_RETRY_MS = 15 * 60 * 1000;
 
 // Pre-downloads bodies for items marked saved that aren't cached here yet, so
 // cross-device articles are readable offline without opening them online first.
 // Call after a sync, while online. Mirrors the iOS app's prefetchMissing.
-async function offlinePrefetchMissing(items, token) {
+async function offlinePrefetchMissing(items, token, now = Date.now()) {
+  const stored = (await chrome.storage.local.get(OFFLINE_MISSING_KEY))[OFFLINE_MISSING_KEY] || {};
+  const next = {};
   for (const item of items) {
-    if (item.offline !== 'saved') continue;
-    if (offlineFetchAttempted.has(item.url)) continue;
+    if (item.offline !== 'saved' || item.deleted) continue;
+    const prior = stored[item.url];
+    if (prior && now < prior.retryAt) { next[item.url] = prior; continue; }
     if (await offlineGetBody(item.url)) continue; // already cached
     try {
-      const rec = await offlineFetchBody(item.url, token);
-      if (!rec) offlineFetchAttempted.add(item.url); // 404 — stop retrying this session
+      if (await offlineFetchBody(item.url, token)) continue;
+      next[item.url] = { retryAt: now + OFFLINE_MISSING_RETRY_MS }; // 404
     } catch {
-      offlineFetchAttempted.add(item.url); // offline/error — retry next SW lifetime
+      next[item.url] = { retryAt: now + OFFLINE_ERROR_RETRY_MS }; // offline/error
     }
+  }
+  // Rebuilt from the current list each time, so entries for items that were
+  // fetched, removed or unmarked drop out instead of piling up. Written only
+  // when something changed, so a quiet minute costs one read and no write.
+  if (JSON.stringify(next) !== JSON.stringify(stored)) {
+    await chrome.storage.local.set({ [OFFLINE_MISSING_KEY]: next });
   }
 }
